@@ -13,7 +13,7 @@ vignette: >
 
 ## Introduction
 
-It's been our experience when teaching the data wrangling part of data science that students often have difficulty understanding the conversion to and from row-oriented and column-oriented data formats (what is commonly called pivoting and un-pivoting).
+It has been our experience when teaching the data wrangling part of data science that students often have difficulty understanding the conversion to and from row-oriented and column-oriented data formats (what is commonly called pivoting and un-pivoting).
 
 ![](wireLoom.png)
 
@@ -37,7 +37,7 @@ Data scientist 1 is an experienced modeler, and records their data as follows:
 
 ```{r s1}
 library("tibble")
-d1 <- frame_data(
+d1 <- tribble(
   ~model, ~depth, ~testset, ~AUC, ~pR2,
   'a',    5,      'x',      0.4,  0.2,
   'a',    5,      'y',      0.6,  0.3,
@@ -58,13 +58,13 @@ Denormalized forms are the most ready for tasks that reason across columns, such
 Data Scientist 2 has data warehousing experience and records their data in a [normal form](https://en.wikipedia.org/wiki/Database_normalization#Normal_forms):
 
 ```{r s2}
-models2 <- frame_data(
+models2 <- tribble(
   ~model, ~depth,
   'a',    5,
   'b',    3
 )
 
-d2 <- frame_data(
+d2 <- tribble(
   ~model, ~testset, ~AUC, ~pR2,
   'a',   'x',      0.4,  0.2,
   'a',   'y',      0.6,  0.3,
@@ -99,7 +99,7 @@ all.equal(d1, d1_2)
 Data Scientist 3 has a lot of field experience, and prefers an [entity/attribute/value](https://en.wikipedia.org/wiki/Entity–attribute–value_model) notation. They log each measurement as a separate row:
 
 ```{r s3}
-d3 <- frame_data(
+d3 <- tribble(
   ~model, ~depth, ~testset, ~measurement, ~value,
   'a',    5,      'x',      'AUC',        0.4,
   'a',    5,      'x',      'pR2',        0.2,
@@ -164,7 +164,7 @@ Note: often the data re-arrangement operation is only exposed as part of a large
 Data Scientist 4 picks a form that makes models unique keys, and records the results as:
 
 ```{r s4}
-d4 <- frame_data(
+d4 <- tribble(
   ~model, ~depth, ~x_AUC, ~x_pR2, ~y_AUC, ~y_pR2,
   'a',    5,      0.4,    0.2,   0.6,    0.3,
   'b',    3,      0.5,    0.25,  0.5,    0.25
@@ -275,7 +275,7 @@ Moving data from columns to rows (i.e., from Scientist 1 to Scientist 3) is easy
 The only thing hard about this operation is remembering the name of the operation ("`gather()`") and the arguments.  We can remove this inessential difficulty by bringing in a verbose wrapper function:
 
 ```{r moveValuesToRows}
-library("cdata") # https://github.com/WinVector/zmPDSwR/cdata
+library("cdata")
 ```
 
 In this notation moving from Data Scientist 1's records to Data Scientist 3's looks like the following.

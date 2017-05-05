@@ -1,6 +1,6 @@
 ## ----s1------------------------------------------------------------------
 library("tibble")
-d1 <- frame_data(
+d1 <- tribble(
   ~model, ~depth, ~testset, ~AUC, ~pR2,
   'a',    5,      'x',      0.4,  0.2,
   'a',    5,      'y',      0.6,  0.3,
@@ -10,13 +10,13 @@ d1 <- frame_data(
 print(d1)
 
 ## ----s2------------------------------------------------------------------
-models2 <- frame_data(
+models2 <- tribble(
   ~model, ~depth,
   'a',    5,
   'b',    3
 )
 
-d2 <- frame_data(
+d2 <- tribble(
   ~model, ~testset, ~AUC, ~pR2,
   'a',   'x',      0.4,  0.2,
   'a',   'y',      0.6,  0.3,
@@ -37,7 +37,7 @@ print(d1_2)
 all.equal(d1, d1_2)
 
 ## ----s3------------------------------------------------------------------
-d3 <- frame_data(
+d3 <- tribble(
   ~model, ~depth, ~testset, ~measurement, ~value,
   'a',    5,      'x',      'AUC',        0.4,
   'a',    5,      'x',      'pR2',        0.2,
@@ -67,7 +67,7 @@ all.equal(d1, d1_3)
 #                        rowKeyColumns = c('model', 'testset'))
 
 ## ----s4------------------------------------------------------------------
-d4 <- frame_data(
+d4 <- tribble(
   ~model, ~depth, ~x_AUC, ~x_pR2, ~y_AUC, ~y_pR2,
   'a',    5,      0.4,    0.2,   0.6,    0.3,
   'b',    3,      0.5,    0.25,  0.5,    0.25
@@ -120,7 +120,7 @@ print(lookup(k3))
 print(lookup(k4))
 
 ## ----moveValuesToRows----------------------------------------------------
-library("cdata") # https://github.com/WinVector/zmPDSwR/cdata
+library("cdata")
 
 ## ----sc1to3--------------------------------------------------------------
 d3from1 <- moveValuesToRows(data=d1,

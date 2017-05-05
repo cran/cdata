@@ -1,6 +1,9 @@
 
 #' @importFrom dplyr %>%
 #' @importFrom stats complete.cases
+#' @importFrom tibble frame_data
+#' @importFrom tidyr gather spread
+#' @importFrom wrapr let
 NULL
 
 
@@ -22,6 +25,7 @@ NULL
 #'
 checkColsFormUniqueKeys <- function(data, keyColNames,
                                     allowNAKeys = FALSE) {
+  data <- dplyr::ungroup(data)
   # check for NA keys
   if((!allowNAKeys) && (length(keyColNames)>0)) {
     allGood <- data %>%
@@ -39,8 +43,11 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
   if(length(setdiff(keyColNames,cn))>0) {
     stop("cdata:checkColsFormUniqueKeys all keyColNames must be columns of data")
   }
-  # count the number of rows
-  ndata <- replyr::replyr_nrow(data)
+  # count the number of rows (threat 0-column frames as 0-row frames)
+  ndata <- 0
+  if(ncol(data)>0) {
+    ndata <- nrow(data)
+  }
   if(ndata<=1) {
     return(TRUE)
   }
@@ -49,9 +56,9 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
   if(length(keyColNames)>0) {
     nunique <-
       data %>%
-      dplyr::select(dplyr::one_of(keyColNames)) %>%
-      dplyr::distinct() %>%
-      replyr::replyr_nrow()
+        dplyr::select(dplyr::one_of(keyColNames)) %>%
+        dplyr::distinct() %>%
+        nrow()
   }
   # compare
   return(nunique==ndata)
@@ -67,7 +74,6 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
 #' @param nameForNewKeyColumn character name of column to write new keys in.
 #' @param nameForNewValueColumn character name of column to write new values in.
 #' @param columnsToTakeFrom character array names of columns to take values from.
-#' @param allowNAKeys logical if FALSE throw if there are NAs in the key columns.
 #' @param na.rm passed to \code{tidyr::gather}
 #' @param convert passed to \code{tidyr::gather}
 #' @param factor_key passed to \code{tidyr::gather}
@@ -88,10 +94,10 @@ moveValuesToRows <- function(data,
                              nameForNewKeyColumn,
                              nameForNewValueColumn,
                              columnsToTakeFrom,
-                             allowNAKeys = FALSE,
                              na.rm = FALSE,
                              convert = FALSE,
                              factor_key = FALSE) {
+  data <- dplyr::ungroup(data)
   cn <- colnames(data)
   if(length(nameForNewKeyColumn)!=1) {
     stop("cdata:moveValuesToRows nameForNewKeyColumn must be length 1")
@@ -108,6 +114,15 @@ moveValuesToRows <- function(data,
   if(length(columnsToTakeFrom)>0) {
     if(!is.character(columnsToTakeFrom)) {
       stop("cdata:moveValuesToRows columnsToTakeFrom must be character")
+    }
+    if(any(is.na(columnsToTakeFrom))) {
+      stop("cdata:moveValuesToRows columnsToTakeFrom must not contain NA")
+    }
+    if(any(nchar(columnsToTakeFrom)<=0)) {
+      stop("cdata:moveValuesToRows columnsToTakeFrom must not contain ''")
+    }
+    if(length(unique(columnsToTakeFrom))!=length(columnsToTakeFrom)) {
+      stop("cdata:moveValuesToRows columnsToTakeFrom must be unique values")
     }
   }
   if(nameForNewKeyColumn %in% cn) {
@@ -126,7 +141,7 @@ moveValuesToRows <- function(data,
   if(!checkColsFormUniqueKeys(dplyr::select(data,
                                             dplyr::one_of(dcols)),
                               dcols,
-                              allowNAKeys = allowNAKeys)) {
+                              allowNAKeys = FALSE)) {
     stop("cdata:moveValuesToRows rows were not uniquely keyed")
   }
   NAMEFORNEWKEYCOLUMM <- NULL # signal not an unbound variable
@@ -153,7 +168,6 @@ moveValuesToRows <- function(data,
 #' @param columnToTakeKeysFrom character name of column build new column names from.
 #' @param columnToTakeValuesFrom character name of column to get values from.
 #' @param rowKeyColumns character array names columns that should be table keys.
-#' @param allowNAKeys logical if FALSE throw if there are NAs in the key columns.
 #' @param fill passed to \code{tidyr::spread}
 #' @param convert passed to \code{tidyr::spread}
 #' @param drop passed to \code{tidyr::spread}
@@ -174,11 +188,11 @@ moveValuesToColumns <- function(data,
                                 columnToTakeKeysFrom,
                                 columnToTakeValuesFrom,
                                 rowKeyColumns,
-                                allowNAKeys = FALSE,
                                 fill = NA,
                                 convert = FALSE,
                                 drop = TRUE,
                                 sep = NULL) {
+  data <- dplyr::ungroup(data)
   cn <- colnames(data)
   if(length(columnToTakeKeysFrom)!=1) {
     stop("cdata:moveValuesToColumns columnToTakeKeysFrom must be length 1")
@@ -220,7 +234,7 @@ moveValuesToColumns <- function(data,
   if(!checkColsFormUniqueKeys(data,
                               c(rowKeyColumns,
                                 columnToTakeKeysFrom),
-                              allowNAKeys = allowNAKeys)) {
+                              allowNAKeys = FALSE)) {
     stop(paste0("\n moveValeusToColumns: specified",
                 "\n rowKeyColumns plus columnToTakeKeysFrom",
                 "\n isn't unique across rows"))
@@ -234,7 +248,7 @@ moveValuesToColumns <- function(data,
     dplyr::distinct()
   if(!checkColsFormUniqueKeys(dsub,
                               rowKeyColumns,
-                              allowNAKeys = allowNAKeys)) {
+                              allowNAKeys = FALSE)) {
     stop(paste0("\n some columns not in",
                 "\n c(rowKeyColumns, columnToTakeKeysFrom, columnToTakeValuesFrom)",
                 "\n are splitting up row groups"))
