@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount and Nina Zumel" />
 
-<meta name="date" content="2017-07-04" />
+<meta name="date" content="2017-10-12" />
 
 <title>Coordinatized Data: A Fluid Data Specification</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Coordinatized Data: A Fluid Data Specification</h1>
 <h4 class="author"><em>John Mount and Nina Zumel</em></h4>
-<h4 class="date"><em>2017-07-04</em></h4>
+<h4 class="date"><em>2017-10-12</em></h4>
 
 
 
@@ -152,7 +152,7 @@ d2 &lt;-<span class="st"> </span><span class="kw">tribble</span>(
 ## 4     b       y   0.5  0.25</code></pre>
 <p>The idea is: since <code>depth</code> is a function of the model name, it should not be recorded as a column unless needed. In a normal form such as above, every item of data is written only one place. This means that we cannot have inconsistencies such as accidentally entering two different depths for a given model. In this example all our columns are either key or payload.</p>
 <p>Data Scientist 2 is not concerned about any difficulty that might arise by this format as they know they can convert to Data Scientist 1’s format by using a <code>join</code> command:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="dt">warn.conflicts=</span> <span class="ot">FALSE</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">suppressPackageStartupMessages</span>(<span class="kw">library</span>(<span class="st">&quot;dplyr&quot;</span>))
 
 d1_2 &lt;-<span class="st"> </span><span class="kw">left_join</span>(d2, models2, <span class="dt">by=</span><span class="st">'model'</span>) %&gt;%
 <span class="st">  </span><span class="kw">select</span>(model, depth, testset, AUC, pR2) %&gt;%

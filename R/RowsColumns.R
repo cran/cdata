@@ -1,5 +1,5 @@
 
-#' @importFrom dplyr %>%
+#' @importFrom wrapr %.>%
 #' @importFrom stats complete.cases
 #' @importFrom tibble frame_data
 #' @importFrom tidyr gather spread
@@ -28,10 +28,10 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
   data <- dplyr::ungroup(data)
   # check for NA keys
   if((!allowNAKeys) && (length(keyColNames)>0)) {
-    allGood <- data %>%
-      dplyr::select(dplyr::one_of(keyColNames)) %>%
-      complete.cases() %>%
-      all()
+    allGood <- data %.>%
+      dplyr::select(., dplyr::one_of(keyColNames)) %.>%
+      complete.cases(.) %.>%
+      all(.)
     if(!allGood) {
       stop("saw NA in keys")
     }
@@ -43,28 +43,25 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
   if(length(setdiff(keyColNames,cn))>0) {
     stop("cdata::checkColsFormUniqueKeys all keyColNames must be columns of data")
   }
-  # count the number of rows (threat 0-column frames as 0-row frames)
-  ndata <- 0
-  if(ncol(data)>0) {
-    ndata <- nrow(data)
-  }
+  # count the number of rows (treat 0-column frames as 0-row frames)
+  ndata <- nrow(data)
   if(ndata<=1) {
     return(TRUE)
   }
-  # count the number of rows identifiable by keys
-  nunique <- min(1, ndata)
-  if(length(keyColNames)>0) {
-    nunique <-
-      data %>%
-        dplyr::select(dplyr::one_of(keyColNames)) %>%
-        dplyr::distinct() %>%
-        nrow()
+  if(length(keyColNames) <= 0) {
+    return(FALSE)
   }
+  # count the number of rows identifiable by keys
+  nunique <-
+    data %.>%
+    dplyr::select(., dplyr::one_of(keyColNames)) %.>%
+    dplyr::distinct(.) %.>%
+    nrow(.)
   # compare
   return(nunique==ndata)
 }
 
-#' Move values from columns to rows (wrapper for \code{tidyr::gather}, or anti-pivot).
+#' Move values from columns to rows (wrapper for \code{\link[tidyr]{gather}}, or anti-pivot).
 #'
 #' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
 #'
@@ -76,9 +73,9 @@ checkColsFormUniqueKeys <- function(data, keyColNames,
 #' @param columnsToTakeFrom character array names of columns to take values from.
 #' @param ... force later argumets to bind by name.
 #' @param nameForNewClassColumn optional name to land original cell classes to.
-#' @param na.rm passed to \code{tidyr::gather}
-#' @param convert passed to \code{tidyr::gather}
-#' @param factor_key passed to \code{tidyr::gather}
+#' @param na.rm passed to \code{\link[tidyr]{gather}}
+#' @param convert passed to \code{\link[tidyr]{gather}}
+#' @param factor_key passed to \code{\link[tidyr]{gather}}
 #' @return new data.frame with values moved to rows.
 #'
 #' @examples
@@ -103,7 +100,7 @@ moveValuesToRows <- function(data,
                              factor_key = FALSE) {
   data <- dplyr::ungroup(data)
   cn <- colnames(data)
-  if(length(list(...))) {
+  if(length(list(...))>0) {
     stop("cdata::moveValuesToRows unexpected arguments")
   }
   if(length(nameForNewKeyColumn)!=1) {
@@ -176,7 +173,7 @@ moveValuesToRows <- function(data,
   res
 }
 
-#' Move values from rows to columns (wrapper for \code{tidyr::spread} or pivot).
+#' Move values from rows to columns (wrapper for \code{\link[tidyr]{spread}} or pivot).
 #'
 #' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
 #'
@@ -187,10 +184,10 @@ moveValuesToRows <- function(data,
 #' @param columnToTakeValuesFrom character name of column to get values from.
 #' @param rowKeyColumns character array names columns that should be table keys.
 #' @param ... force later arguments to bind by name.
-#' @param fill passed to \code{tidyr::spread}
-#' @param convert passed to \code{tidyr::spread}
-#' @param drop passed to \code{tidyr::spread}
-#' @param sep passed to \code{tidyr::spread}
+#' @param fill passed to \code{\link[tidyr]{spread}}
+#' @param convert passed to \code{\link[tidyr]{spread}}
+#' @param drop passed to \code{\link[tidyr]{spread}}
+#' @param sep passed to \code{\link[tidyr]{spread}}
 #' @return new data.frame with values moved to columns.
 #'
 #' @examples
@@ -214,8 +211,8 @@ moveValuesToColumns <- function(data,
                                 sep = NULL) {
   data <- dplyr::ungroup(data)
   cn <- colnames(data)
-  if(length(list(...))) {
-    stop("cdata::moveValuesToRows unexpected arguments")
+  if(length(list(...))>0) {
+    stop("cdata::moveValuesToColumns unexpected arguments")
   }
   if(length(columnToTakeKeysFrom)!=1) {
     stop("cdata::moveValuesToColumns columnToTakeKeysFrom must be length 1")
@@ -266,15 +263,17 @@ moveValuesToColumns <- function(data,
   # the distinct rows data frame without columnToTakeKeysFrom and columnToTakeValuesFrom
   dcols <- setdiff(colnames(data),
                    c(columnToTakeKeysFrom, columnToTakeValuesFrom))
-  dsub <- data %>%
-    dplyr::select(dplyr::one_of(dcols)) %>%
-    dplyr::distinct()
-  if(!checkColsFormUniqueKeys(dsub,
-                              rowKeyColumns,
-                              allowNAKeys = TRUE)) {
-    stop(paste0("\n some columns not in",
-                "\n c(rowKeyColumns, columnToTakeKeysFrom, columnToTakeValuesFrom)",
-                "\n are splitting up row groups"))
+  if(length(dcols)>0) { # work around https://github.com/tidyverse/dplyr/issues/2954
+    dsub <- data %.>%
+      dplyr::select(.,dplyr::one_of(dcols)) %.>%
+      dplyr::distinct(.)
+    if(!checkColsFormUniqueKeys(dsub,
+                                rowKeyColumns,
+                                allowNAKeys = TRUE)) {
+      stop(paste0("\n some columns not in",
+                  "\n c(rowKeyColumns, columnToTakeKeysFrom, columnToTakeValuesFrom)",
+                  "\n are splitting up row groups"))
+    }
   }
   COLUMNTOTAKEKEYSFROM <- NULL # signal not an unbound variable
   COLUMNTOTAKEVALUESFROM <- NULL # signal not an unbound variable

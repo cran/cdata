@@ -28,7 +28,7 @@ print(models2)
 print(d2)
 
 ## ----sc2to1--------------------------------------------------------------
-library("dplyr", warn.conflicts= FALSE)
+suppressPackageStartupMessages(library("dplyr"))
 
 d1_2 <- left_join(d2, models2, by='model') %>%
   select(model, depth, testset, AUC, pR2) %>%
