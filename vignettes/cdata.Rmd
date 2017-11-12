@@ -1,0 +1,47 @@
+---
+title: "cdata"
+author: "John Mount, Win-Vector LLC"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+[`cdata`](https://github.com/WinVector/cdata) is a demonstration of the ["coordinatized data" theory](https://github.com/WinVector/cdata/blob/master/extras/RowsAndColumns.md) and includes an implementation of the ["fluid data" methodology](https://github.com/WinVector/cdata/blob/master/extras/FluidData.md).
+
+Briefly `cdata` supplies data transform operators that:
+
+ * Work on local data or any `DBI` data source.
+ * Are powerful generalizations of the operators commonly called `pivot` and `un-pivot`.
+
+A quick example:
+
+```{r ex1}
+library("cdata")
+my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+
+# pivot example
+d <- data.frame(meas = c('AUC', 'R2'), val = c(0.6, 0.2))
+DBI::dbWriteTable(my_db,
+                  'd',
+                  d,
+                  temporary = TRUE)
+qlook(my_db, 'd')
+
+cT <- buildPivotControlTableN('d',
+                              columnToTakeKeysFrom= 'meas',
+                              columnToTakeValuesFrom= 'val',
+                              my_db = my_db)
+tab <- moveValuesToColumnsN('d',
+                            keyColumns = NULL,
+                            controlTable = cT,
+                            my_db = my_db)
+qlook(my_db, tab)
+
+DBI::dbDisconnect(my_db)
+```
+
+Note: `cdata` is targeted at data with "tame column names", that is column names that are valid both in databases, and as `R` variable names.
+

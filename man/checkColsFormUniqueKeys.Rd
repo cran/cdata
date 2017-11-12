@@ -2,26 +2,25 @@
 % Please edit documentation in R/RowsColumns.R
 \name{checkColsFormUniqueKeys}
 \alias{checkColsFormUniqueKeys}
-\title{Check that a set of columns form unique keys}
+\title{Check that a set of columns form unique keys.}
 \usage{
-checkColsFormUniqueKeys(data, keyColNames, allowNAKeys = TRUE)
+checkColsFormUniqueKeys(data, keyColNames)
 }
 \arguments{
 \item{data}{data.frame to work with.}
 
 \item{keyColNames}{character array of column names to check.}
-
-\item{allowNAKeys}{logical if FALSE throw if there are NAs in the key columns.}
 }
 \value{
 logical TRUE if the rows of data are unique addressable by the columns named in keyColNames.
 }
 \description{
-Check that a set of columns form unique keys
+For local data.frame only.
 }
 \examples{
 
-d <- data.frame(key= c('a','a', 'b'))
+d <- data.frame(key = c('a','a', 'b'))
 checkColsFormUniqueKeys(d, 'key')
-
+d <- data.frame(key = c('a','a', 'b'), k2 = c(1 ,2, 2))
+checkColsFormUniqueKeys(d, c('key', 'k2'))
 }

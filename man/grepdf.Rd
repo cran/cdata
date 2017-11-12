@@ -44,10 +44,9 @@ grepdf('^x', d)
 grepdf('b$', d)
 
 # very useful in pipelines
-suppressPackageStartupMessages(library("dplyr"))
 d2 <- data.frame(x = 1, val1 = 1, val2 = 2)
-d2 \%>\%
-  moveValuesToRows(. ,
+d2 \%.>\%
+  unpivotValuesToRows(. ,
                    nameForNewKeyColumn = 'measureName',
                    nameForNewValueColumn = 'measureValue',
                    columnsToTakeFrom = grepdf('^val', .))

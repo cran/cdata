@@ -1,4 +1,14 @@
 
+# cdata 0.5.0 2017/11/11
+
+ * query-based re-implementation
+ * fluid data workflow.
+ * remove dplyr and tidyr dependence
+ 
+# cdata 0.1.7 2017/10/31
+
+ * Better error msgs.
+
 # cdata 0.1.6 2017/10/12
 
  * work around empty keyset issues.
