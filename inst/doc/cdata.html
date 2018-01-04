@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2017-11-12" />
+<meta name="date" content="2018-01-03" />
 
 <title>cdata</title>
 
@@ -70,11 +70,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">cdata</h1>
 <h4 class="author"><em>John Mount, Win-Vector LLC</em></h4>
-<h4 class="date"><em>2017-11-12</em></h4>
+<h4 class="date"><em>2018-01-03</em></h4>
 
 
 
-<p><a href="https://github.com/WinVector/cdata"><code>cdata</code></a> is a demonstration of the <a href="https://github.com/WinVector/cdata/blob/master/extras/RowsAndColumns.md">“coordinatized data” theory</a> and includes an implementation of the <a href="https://github.com/WinVector/cdata/blob/master/extras/FluidData.md">“fluid data” methodology</a>.</p>
+<p><a href="https://github.com/WinVector/cdata"><code>cdata</code></a> is a demonstration of the <a href="http://winvector.github.io/FluidData/RowsAndColumns.html">“coordinatized data” theory</a> and includes an implementation of the <a href="http://winvector.github.io/FluidData/FluidData.html">“fluid data” methodology</a>. The tutorial of the general methodology is: <a href="http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html">Fluid data reshaping with cdata</a>. Another example can be found <a href="http://winvector.github.io/FluidData/DataWranglingAtScale.html">here</a>.</p>
 <p>Briefly <code>cdata</code> supplies data transform operators that:</p>
 <ul>
 <li>Work on local data or any <code>DBI</code> data source.</li>
@@ -97,16 +97,16 @@ DBI<span class="op">::</span><span class="kw">dbWriteTable</span>(my_db,
 ## 'data.frame':    2 obs. of  2 variables:
 ##  $ meas: chr  &quot;AUC&quot; &quot;R2&quot;
 ##  $ val : num  0.6 0.2</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cT &lt;-<span class="st"> </span><span class="kw">buildPivotControlTableN</span>(<span class="st">'d'</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cT &lt;-<span class="st"> </span><span class="kw">build_pivot_control_q</span>(<span class="st">'d'</span>,
                               <span class="dt">columnToTakeKeysFrom=</span> <span class="st">'meas'</span>,
                               <span class="dt">columnToTakeValuesFrom=</span> <span class="st">'val'</span>,
                               <span class="dt">my_db =</span> my_db)
-tab &lt;-<span class="st"> </span><span class="kw">moveValuesToColumnsN</span>(<span class="st">'d'</span>,
+tab &lt;-<span class="st"> </span><span class="kw">blocks_to_rowrecs_q</span>(<span class="st">'d'</span>,
                             <span class="dt">keyColumns =</span> <span class="ot">NULL</span>,
                             <span class="dt">controlTable =</span> cT,
                             <span class="dt">my_db =</span> my_db)
 <span class="kw">qlook</span>(my_db, tab)</code></pre></div>
-<pre><code>## table `mvtcq_ug7m2oenbajv1isvqm8v_0000000001` SQLiteConnection 
+<pre><code>## table `mvtcq_b3scgqeoozwcvgjsy28h_0000000001` SQLiteConnection 
 ##  nrow: 1 
 ## 'data.frame':    1 obs. of  2 variables:
 ##  $ AUC: num 0.6

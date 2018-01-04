@@ -1,5 +1,17 @@
 
-# cdata 0.5.0 2017/11/11
+
+# cdata 0.5.1 2018/01/03
+
+ * New naming convention.
+ * Doc fixes.
+ * Better table lifetime controls.
+ * Move to wrapr 1.0.2.
+ * Move grepdf out of package.
+ * Add row binder.
+ * Add map_fields.
+ * Add winvector_temp_db_handle support.
+
+# cdata 0.5.0 2017/11/13
 
  * query-based re-implementation
  * fluid data workflow.

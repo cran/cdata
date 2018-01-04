@@ -4,12 +4,12 @@ author: "John Mount, Win-Vector LLC"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteIndexEntry{cdata}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-[`cdata`](https://github.com/WinVector/cdata) is a demonstration of the ["coordinatized data" theory](https://github.com/WinVector/cdata/blob/master/extras/RowsAndColumns.md) and includes an implementation of the ["fluid data" methodology](https://github.com/WinVector/cdata/blob/master/extras/FluidData.md).
+[`cdata`](https://github.com/WinVector/cdata) is a demonstration of the ["coordinatized data" theory](http://winvector.github.io/FluidData/RowsAndColumns.html) and includes an implementation of the ["fluid data" methodology](http://winvector.github.io/FluidData/FluidData.html). The tutorial of the general methodology is: [Fluid data reshaping with cdata](http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html). Another example can be found [here](http://winvector.github.io/FluidData/DataWranglingAtScale.html).
 
 Briefly `cdata` supplies data transform operators that:
 
@@ -30,11 +30,11 @@ DBI::dbWriteTable(my_db,
                   temporary = TRUE)
 qlook(my_db, 'd')
 
-cT <- buildPivotControlTableN('d',
+cT <- build_pivot_control_q('d',
                               columnToTakeKeysFrom= 'meas',
                               columnToTakeValuesFrom= 'val',
                               my_db = my_db)
-tab <- moveValuesToColumnsN('d',
+tab <- blocks_to_rowrecs_q('d',
                             keyColumns = NULL,
                             controlTable = cT,
                             my_db = my_db)

@@ -1,6 +1,6 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-`cdata` is a running explanation of the ["coordinatized data" theory](https://github.com/WinVector/cdata/blob/master/extras/RowsAndColumns.md) and includes an implementation of the ["fluid data" methodology](https://github.com/WinVector/cdata/blob/master/extras/FluidData.md).
+The `cdata` package is a demonstration of the ["coordinatized data" theory](http://winvector.github.io/FluidData/RowsAndColumns.html) and includes an implementation of the ["fluid data" methodology](http://winvector.github.io/FluidData/FluidData.html). The recommended tutorial is: [Fluid data reshaping with cdata](http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html). Another example can be found [here](http://winvector.github.io/FluidData/DataWranglingAtScale.html).
 
 ![](https://raw.githubusercontent.com/WinVector/cdata/master/tools/cdata.png)
 
@@ -36,18 +36,18 @@ qlook(my_db, 'd')
     ##  $ val : num  0.6 0.2
 
 ``` r
-cT <- buildPivotControlTableN('d',
+cT <- build_pivot_control_q('d',
                               columnToTakeKeysFrom= 'meas',
                               columnToTakeValuesFrom= 'val',
                               my_db = my_db)
-tab <- moveValuesToColumnsN('d',
+tab <- blocks_to_rowrecs_q('d',
                             keyColumns = NULL,
                             controlTable = cT,
                             my_db = my_db)
 qlook(my_db, tab)
 ```
 
-    ## table `mvtcq_lchtpcfpsvycaafc9zlu_0000000001` SQLiteConnection 
+    ## table `mvtcq_zg7rrsptqga0pcrunpx9_0000000001` SQLiteConnection 
     ##  nrow: 1 
     ## 'data.frame':    1 obs. of  2 variables:
     ##  $ AUC: num 0.6
@@ -69,4 +69,4 @@ Or from Github using devtools:
 devtools::install_github("WinVector/cdata")
 ```
 
-Note: `cdata` is targeted at data with "tame column names", that is column names that are valid both in databases, and as `R` variable names.
+Note: `cdata` is targeted at data with "tame column names" (column names that are valid both in databases, and as `R` unquoted variable names) and basic types (column values that are simple `R` types such as `character`, `numeric`, `logical`, and so on).

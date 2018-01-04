@@ -44,11 +44,11 @@ checkColsFormUniqueKeys <- function(data, keyColNames) {
   return(anyDuplicated(data)<=0)
 }
 
-#' Move values from columns to rows (anti-pivot).
+#' Move values from columns to rows (anti-pivot, or "shred").
 #'
 #' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
 #'
-#' @seealso \code{\link{pivotValuesToColumns}}
+#' @seealso \code{\link{pivot_to_rowrecs}}
 #'
 #' @param data data.frame to work with (must be local, for remote please try \code{moveValuesToRows*}).
 #' @param nameForNewKeyColumn character name of column to write new keys in.
@@ -56,12 +56,13 @@ checkColsFormUniqueKeys <- function(data, keyColNames) {
 #' @param columnsToTakeFrom character array names of columns to take values from.
 #' @param ... force later argumets to bind by name.
 #' @param nameForNewClassColumn optional name to land original cell classes to.
+#' @param env environment to look for "winvector_temp_db_handle" in.
 #' @return new data.frame with values moved to rows.
 #'
 #' @examples
 #'
 #' d <- data.frame(AUC= 0.6, R2= 0.2)
-#' unpivotValuesToRows(d,
+#' unpivot_to_blocks(d,
 #'                  nameForNewKeyColumn= 'meas',
 #'                  nameForNewValueColumn= 'val',
 #'                  columnsToTakeFrom= c('AUC', 'R2'))
@@ -69,73 +70,75 @@ checkColsFormUniqueKeys <- function(data, keyColNames) {
 #' @export
 #'
 #'
-unpivotValuesToRows <- function(data,
-                             nameForNewKeyColumn,
-                             nameForNewValueColumn,
-                             columnsToTakeFrom,
-                             ...,
-                             nameForNewClassColumn = NULL) {
+unpivot_to_blocks <- function(data,
+                              nameForNewKeyColumn,
+                              nameForNewValueColumn,
+                              columnsToTakeFrom,
+                              ...,
+                              nameForNewClassColumn = NULL,
+                              env = parent.frame()) {
   if(!is.data.frame(data)) {
-    stop("cdata::unpivotValuesToRows data must be a local data.frame")
+    stop("cdata::unpivot_to_blocks data must be a local data.frame")
   }
   cn <- colnames(data)
   if(length(list(...))>0) {
-    stop("cdata::unpivotValuesToRows unexpected arguments")
+    stop("cdata::unpivot_to_blocks unexpected arguments")
   }
   if(length(nameForNewKeyColumn)!=1) {
-    stop("cdata::unpivotValuesToRows nameForNewKeyColumn must be length 1")
+    stop("cdata::unpivot_to_blocks nameForNewKeyColumn must be length 1")
   }
   if(length(nameForNewValueColumn)!=1) {
-    stop("cdata::unpivotValuesToRows nameForNewValueColumn must be length 1")
+    stop("cdata::unpivot_to_blocks nameForNewValueColumn must be length 1")
   }
   if(!is.character(nameForNewKeyColumn)) {
-    stop("cdata::unpivotValuesToRows nameForNewKeyColumn must be character")
+    stop("cdata::unpivot_to_blocks nameForNewKeyColumn must be character")
   }
   if(!is.character(nameForNewValueColumn)) {
-    stop("cdata::unpivotValuesToRows nameForNewValueColumn must be character")
+    stop("cdata::unpivot_to_blocks nameForNewValueColumn must be character")
   }
   if(length(columnsToTakeFrom)>0) {
     if(!is.character(columnsToTakeFrom)) {
-      stop("cdata::unpivotValuesToRows columnsToTakeFrom must be character")
+      stop("cdata::unpivot_to_blocks columnsToTakeFrom must be character")
     }
     if(any(is.na(columnsToTakeFrom))) {
-      stop("cdata::unpivotValuesToRows columnsToTakeFrom must not contain NA")
+      stop("cdata::unpivot_to_blocks columnsToTakeFrom must not contain NA")
     }
     if(any(nchar(columnsToTakeFrom)<=0)) {
-      stop("cdata::unpivotValuesToRows columnsToTakeFrom must not contain ''")
+      stop("cdata::unpivot_to_blocks columnsToTakeFrom must not contain ''")
     }
     if(length(unique(columnsToTakeFrom))!=length(columnsToTakeFrom)) {
-      stop("cdata::unpivotValuesToRows columnsToTakeFrom must be unique values")
+      stop("cdata::unpivot_to_blocks columnsToTakeFrom must be unique values")
     }
   }
   if(nameForNewKeyColumn %in% cn) {
-    stop("cdata::unpivotValuesToRows nameForNewKeyColumn must not be a column name")
+    stop("cdata::unpivot_to_blocks nameForNewKeyColumn must not be a column name")
   }
   if(nameForNewValueColumn %in% cn) {
-    stop("cdata::unpivotValuesToRows nameForNewValueColumn must not be a column name")
+    stop("cdata::unpivot_to_blocks nameForNewValueColumn must not be a column name")
   }
   if(nameForNewKeyColumn==nameForNewValueColumn) {
-    stop("cdata::unpivotValuesToRows nameForNewKeyColumn must not equal nameForNewValueColumn")
+    stop("cdata::unpivot_to_blocks nameForNewKeyColumn must not equal nameForNewValueColumn")
   }
   if(length(setdiff(columnsToTakeFrom,cn))>0) {
-    stop("cdata::unpivotValuesToRows columnsToTakeFrom must all be column names")
+    stop("cdata::unpivot_to_blocks columnsToTakeFrom must all be column names")
   }
   if(length(nameForNewClassColumn)!=0) {
     if((length(nameForNewClassColumn)!=1) || (!is.character(nameForNewClassColumn))) {
-      stop("cdata::unpivotValuesToRows nameForNewClassColumn must be length 1 character")
+      stop("cdata::unpivot_to_blocks nameForNewClassColumn must be length 1 character")
     }
   }
   dcols <- setdiff(cn, columnsToTakeFrom)
   if(!checkColsFormUniqueKeys(data, dcols)) {
-    stop("cdata::unpivotValuesToRows rows were not uniquely keyed")
+    stop("cdata::unpivot_to_blocks rows were not uniquely keyed")
   }
-  cT <- buildUnPivotControlTable(nameForNewKeyColumn = nameForNewKeyColumn,
-                                 nameForNewValueColumn = nameForNewValueColumn,
-                                 columnsToTakeFrom = columnsToTakeFrom)
+  cT <- build_unpivot_control(nameForNewKeyColumn = nameForNewKeyColumn,
+                              nameForNewValueColumn = nameForNewValueColumn,
+                              columnsToTakeFrom = columnsToTakeFrom)
   colsToCopy <- setdiff(colnames(data), columnsToTakeFrom)
-  res <- moveValuesToRowsD(data,
+  res <- rowrecs_to_blocks(data,
                            controlTable = cT,
-                           columnsToCopy = colsToCopy)
+                           columnsToCopy = colsToCopy,
+                           env = env)
   if(!is.null(nameForNewClassColumn)) {
     classMap <- vapply(data, class, character(1))
     names(classMap) <- colnames(data)
@@ -148,7 +151,7 @@ unpivotValuesToRows <- function(data,
 #'
 #' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
 #'
-#' @seealso \code{\link{unpivotValuesToRows}}
+#' @seealso \code{\link{unpivot_to_blocks}}
 #'
 #' @param data data.frame to work with (must be local, for remote please try \code{moveValuesToColumns*}).
 #' @param columnToTakeKeysFrom character name of column build new column names from.
@@ -156,65 +159,67 @@ unpivotValuesToRows <- function(data,
 #' @param rowKeyColumns character array names columns that should be table keys.
 #' @param ... force later arguments to bind by name.
 #' @param sep character if not null build more detailed column names.
+#' @param env environment to look for "winvector_temp_db_handle" in.
 #' @return new data.frame with values moved to columns.
 #'
 #' @examples
 #'
 #' d <- data.frame(meas= c('AUC', 'R2'), val= c(0.6, 0.2))
-#' pivotValuesToColumns(d,
+#' pivot_to_rowrecs(d,
 #'                     columnToTakeKeysFrom= 'meas',
 #'                     columnToTakeValuesFrom= 'val',
 #'                     rowKeyColumns= c())
 #'
 #' @export
 #'
-pivotValuesToColumns <- function(data,
-                                columnToTakeKeysFrom,
-                                columnToTakeValuesFrom,
-                                rowKeyColumns,
-                                ...,
-                                sep = NULL) {
+pivot_to_rowrecs <- function(data,
+                             columnToTakeKeysFrom,
+                             columnToTakeValuesFrom,
+                             rowKeyColumns,
+                             ...,
+                             sep = NULL,
+                             env = parent.frame()) {
   if(!is.data.frame(data)) {
-    stop("cdata::pivotValuesToColumns data must be a local data.frame")
+    stop("cdata::pivot_to_rowrecs data must be a local data.frame")
   }
   cn <- colnames(data)
   if(length(list(...))>0) {
-    stop("cdata::pivotValuesToColumns unexpected arguments")
+    stop("cdata::pivot_to_rowrecs unexpected arguments")
   }
   if(length(columnToTakeKeysFrom)!=1) {
-    stop("cdata::pivotValuesToColumns columnToTakeKeysFrom must be length 1")
+    stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom must be length 1")
   }
   if(length(columnToTakeValuesFrom)!=1) {
-    stop("cdata::pivotValuesToColumns columnToTakeValuesFrom must be length 1")
+    stop("cdata::pivot_to_rowrecs columnToTakeValuesFrom must be length 1")
   }
   if(!is.character(columnToTakeKeysFrom)) {
-    stop("cdata::pivotValuesToColumns columnToTakeKeysFrom must be character")
+    stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom must be character")
   }
   if(!is.character(columnToTakeValuesFrom)) {
-    stop("cdata::pivotValuesToColumns columnToTakeValuesFrom must be character")
+    stop("cdata::pivot_to_rowrecs columnToTakeValuesFrom must be character")
   }
   if(length(rowKeyColumns)>0) {
     if(!is.character(rowKeyColumns)) {
-      stop("cdata::pivotValuesToColumns rowKeyColumns must be character")
+      stop("cdata::pivot_to_rowrecs rowKeyColumns must be character")
     }
   }
   if(!(columnToTakeKeysFrom %in% cn)) {
-    stop("cdata::pivotValuesToColumns columnToTakeKeysFrom must be a column name")
+    stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom must be a column name")
   }
   if(!(columnToTakeValuesFrom %in% cn)) {
-    stop("cdata::pivotValuesToColumns columnToTakeValuesFrom must be a column name")
+    stop("cdata::pivot_to_rowrecs columnToTakeValuesFrom must be a column name")
   }
   # if(columnToTakeKeysFrom==columnToTakeValuesFrom) {
-  #   stop("cdata::pivotValuesToColumns columnToTakeKeysFrom must not equal columnToTakeValuesFrom")
+  #   stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom must not equal columnToTakeValuesFrom")
   # }
   if(length(setdiff(rowKeyColumns,cn))>0) {
-    stop("cdata::pivotValuesToColumns rowKeyColumns must all be column names")
+    stop("cdata::pivot_to_rowrecs rowKeyColumns must all be column names")
   }
   if(columnToTakeKeysFrom %in% rowKeyColumns) {
-    stop("cdata::pivotValuesToColumns columnToTakeKeysFrom not be in rowKeyColumns")
+    stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom not be in rowKeyColumns")
   }
   if(columnToTakeValuesFrom %in% rowKeyColumns) {
-    stop("cdata::pivotValuesToColumns columnToTakeValuesFrom not be in rowKeyColumns")
+    stop("cdata::pivot_to_rowrecs columnToTakeValuesFrom not be in rowKeyColumns")
   }
   # we insist that the rowKeyColumns plus
   # columnToTakeKeysFrom are unique keys
@@ -240,15 +245,17 @@ pivotValuesToColumns <- function(data,
                   "\n are splitting up row groups"))
     }
   }
-  cT <- buildPivotControlTableD(data,
-                                columnToTakeKeysFrom = columnToTakeKeysFrom,
-                                columnToTakeValuesFrom = columnToTakeValuesFrom,
-                                sep = sep)
+  cT <- build_pivot_control(data,
+                            columnToTakeKeysFrom = columnToTakeKeysFrom,
+                            columnToTakeValuesFrom = columnToTakeValuesFrom,
+                            sep = sep,
+                            env = env)
   colsToCopy <- setdiff(colnames(data),
                         c(columnToTakeKeysFrom, columnToTakeValuesFrom, rowKeyColumns))
-  moveValuesToColumnsD(data,
-                       keyColumns = rowKeyColumns,
-                       controlTable = cT,
-                       columnsToCopy = colsToCopy)
+  blocks_to_rowrecs(data,
+                    keyColumns = rowKeyColumns,
+                    controlTable = cT,
+                    columnsToCopy = colsToCopy,
+                    env = env)
 }
 
