@@ -1,8 +1,8 @@
 Package: cdata
 Type: Package
 Title: Fluid Data Transformations
-Version: 0.5.1
-Date: 2018-01-03
+Version: 0.5.2
+Date: 2018-01-20
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -17,15 +17,15 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Depends: wrapr (>= 1.0.2)
+Depends: wrapr (>= 1.1.0)
 Imports: DBI, RSQLite
 Suggests: testthat, knitr, rmarkdown
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2018-01-04 02:22:28 UTC; johnmount
+Packaged: 2018-01-20 15:26:40 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2018-01-04 16:54:39 UTC
+Date/Publication: 2018-01-20 15:45:53 UTC
