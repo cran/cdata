@@ -1,8 +1,16 @@
 
+
+
+# cdata 0.6.0 2018/03/12
+
+ * Add cols() method.
+ * Add doi link in DESCRIPTION (CRAN request).
+ * Use build_frame(), draw_frame(), and qchar_frame (quoted frame) from wrapr 1.3.0.
+
 # cdata 0.5.2 2018/01/20
 
  * Remove append based row binding (seems to have some issues on Spark).
- * Depricate old methods.
+ * Deprecate old methods.
 
 # cdata 0.5.1 2018/01/03
 

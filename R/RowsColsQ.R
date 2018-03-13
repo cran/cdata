@@ -14,9 +14,34 @@ isSpark <- function(db) {
             class(db)))>0
 }
 
-
-listFields <- function(my_db, tableName) {
-  # fails intermitnently, and sometimes gives wrong results
+#' List columns of a table
+#'
+#' @param my_db DBI database connection
+#' @param tableName character name of table
+#' @return list of column names
+#'
+#' @examples
+#'
+#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#' DBI::dbWriteTable(my_db,
+#'                   'd',
+#'                   data.frame(AUC = 0.6, R2 = 0.2, nope = -5),
+#'                   overwrite = TRUE,
+#'                   temporary = TRUE)
+#' cols(my_db, 'd')
+#' cT <- build_unpivot_control(
+#'   nameForNewKeyColumn= 'meas',
+#'   nameForNewValueColumn= 'val',
+#'   columnsToTakeFrom= setdiff(cols(my_db, 'd'), "nope"))
+#' print(cT)
+#' tab <- rowrecs_to_blocks_q('d', cT, my_db = my_db)
+#' qlook(my_db, tab)
+#' DBI::dbDisconnect(my_db)
+#'
+#' @export
+#'
+cols <- function(my_db, tableName) {
+  # comment out block fails intermitnently, and sometimes gives wrong results
   # filed as: https://github.com/tidyverse/dplyr/issues/3204
   # tryCatch(
   #   return(DBI::dbListFields(my_db, tableName)),
@@ -188,7 +213,7 @@ build_unpivot_control <- function(nameForNewKeyColumn,
 #' @param my_db db handle
 #' @param ... force later arguments to be by name.
 #' @param columnsToCopy character list of column names to copy
-#' @param tempNameGenerator a tempNameGenerator from cdata::makeTempNameGenerator()
+#' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param strict logical, if TRUE check control table contents for uniqueness
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
@@ -224,7 +249,7 @@ rowrecs_to_blocks_q <- function(wideTable,
                                 my_db,
                                 ...,
                                 columnsToCopy = NULL,
-                                tempNameGenerator = makeTempNameGenerator('mvtrq'),
+                                tempNameGenerator = mk_tmp_name_source('mvtrq'),
                                 strict = FALSE,
                                 checkNames = TRUE,
                                 showQuery = FALSE,
@@ -250,7 +275,7 @@ rowrecs_to_blocks_q <- function(wideTable,
   if(checkNames) {
     interiorCells <- as.vector(as.matrix(controlTable[,2:ncol(controlTable)]))
     interiorCells <- interiorCells[!is.na(interiorCells)]
-    wideTableColnames <- listFields(my_db, wideTable)
+    wideTableColnames <- cols(my_db, wideTable)
     badCells <- setdiff(interiorCells, wideTableColnames)
     if(length(badCells)>0) {
       stop(paste("cdata::rowrecs_to_blocks_q: control table entries that are not wideTable column names:",
@@ -437,7 +462,7 @@ rowrecs_to_blocks <- function(wideTable,
                                  controlTable = controlTable,
                                  my_db = my_db,
                                  columnsToCopy = columnsToCopy,
-                                 tempNameGenerator = makeTempNameGenerator('mvtrq'),
+                                 tempNameGenerator = mk_tmp_name_source('mvtrq'),
                                  strict = strict,
                                  checkNames = checkNames,
                                  showQuery = showQuery,
@@ -623,7 +648,7 @@ build_pivot_control <- function(table,
 #' @param my_db db handle
 #' @param ... force later arguments to be by name.
 #' @param columnsToCopy character list of column names to copy
-#' @param tempNameGenerator a tempNameGenerator from cdata::makeTempNameGenerator()
+#' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param strict logical, if TRUE check control table contents for uniqueness
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
@@ -663,7 +688,7 @@ blocks_to_rowrecs_q <- function(tallTable,
                                 my_db,
                                 ...,
                                 columnsToCopy = NULL,
-                                tempNameGenerator = makeTempNameGenerator('mvtcq'),
+                                tempNameGenerator = mk_tmp_name_source('mvtcq'),
                                 strict = FALSE,
                                 checkNames = TRUE,
                                 showQuery = FALSE,
@@ -693,7 +718,7 @@ blocks_to_rowrecs_q <- function(tallTable,
     stop(paste("cdata::blocks_to_rowrecs_q", cCheck))
   }
   if(checkNames) {
-    tallTableColnames <- listFields(my_db, tallTable)
+    tallTableColnames <- cols(my_db, tallTable)
     badCells <- setdiff(colnames(controlTable), tallTableColnames)
     if(length(badCells)>0) {
       stop(paste("cdata::blocks_to_rowrecs_q: control table column names that are not tallTable column names:",
@@ -906,7 +931,7 @@ blocks_to_rowrecs <- function(tallTable,
                                  controlTable = controlTable,
                                  my_db = my_db,
                                  columnsToCopy = columnsToCopy,
-                                 tempNameGenerator = makeTempNameGenerator('mvtcq'),
+                                 tempNameGenerator = mk_tmp_name_source('mvtcq'),
                                  strict = strict,
                                  checkNames = checkNames,
                                  showQuery = showQuery,
