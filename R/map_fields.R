@@ -10,37 +10,43 @@
 #'
 #' @examples
 #'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(),
-#'                         ":memory:")
-#' DBI::dbWriteTable(
-#'   my_db,
-#'   'd',
-#'   data.frame(what = c("acc", "loss",
-#'                       "val_acc", "val_loss"),
-#'              score = c(0.8, 1.2,
-#'                        0.7, 1.7),
-#'              stringsAsFactors = FALSE),
-#'   overwrite = TRUE,
-#'   temporary = TRUE)
-#' DBI::dbWriteTable(
-#'   my_db,
-#'   'm',
-#'   data.frame(what = c("acc", "loss",
-#'                       "val_acc", "val_loss"),
-#'              measure = c("accuracy", "log-loss",
-#'                          "accuracy", "log-loss"),
-#'              dataset = c("train", "train", "validation", "validation"),
-#'              stringsAsFactors = FALSE),
-#'   overwrite = TRUE,
-#'   temporary = TRUE)
+#' if (requireNamespace("DBI", quietly = TRUE) &&
+#'   requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(),
+#'                           ":memory:")
+#'   DBI::dbWriteTable(
+#'     my_db,
+#'     'd',
+#'     data.frame(what = c("acc", "loss",
+#'                         "val_acc", "val_loss"),
+#'                score = c(0.8, 1.2,
+#'                          0.7, 1.7),
+#'                stringsAsFactors = FALSE),
+#'     overwrite = TRUE,
+#'     temporary = TRUE)
+#'   DBI::dbWriteTable(
+#'     my_db,
+#'     'm',
+#'     data.frame(what = c("acc", "loss",
+#'                         "val_acc", "val_loss"),
+#'                measure = c("accuracy", "log-loss",
+#'                            "accuracy", "log-loss"),
+#'                dataset = c("train", "train", "validation", "validation"),
+#'                stringsAsFactors = FALSE),
+#'     overwrite = TRUE,
+#'     temporary = TRUE)
 #'
-#' map_fields_q('d', 'what', 'm', my_db, "dm")
-#' cdata::qlook(my_db, 'dm')
-#' DBI::dbDisconnect(my_db)
+#'   map_fields_q('d', 'what', 'm', my_db, "dm")
+#'   cdata::qlook(my_db, 'dm')
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
 #'
 map_fields_q <- function(dname, cname, mname, my_db, rname) {
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::map_fields_q requires DBI package")
+  }
   dests <- vapply(setdiff(cols(my_db,mname), cname),
                   function(di) {
                     DBI::dbQuoteIdentifier(my_db, di)
@@ -59,7 +65,7 @@ map_fields_q <- function(dname, cname, mname, my_db, rname) {
               " d.", DBI::dbQuoteIdentifier(my_db, cname),
               " = ",
               " m.", DBI::dbQuoteIdentifier(my_db, cname))
-  DBI::dbGetQuery(my_db, q)
+  DBI::dbExecute(my_db, q)
   rname
 }
 

@@ -11,7 +11,6 @@ vignette: >
 
 The `cdata` package is a demonstration of the ["coordinatized data" theory](http://winvector.github.io/FluidData/RowsAndColumns.html) and includes an implementation of the ["fluid data" methodology](http://winvector.github.io/FluidData/FluidData.html).   The recommended tutorial is: [Fluid data reshaping with cdata](http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html). We also have a [short free cdata screencast](https://youtu.be/4cYbP3kbc0k) (and another example can be found [here](http://winvector.github.io/FluidData/DataWranglingAtScale.html)).
 
-![](https://raw.githubusercontent.com/WinVector/cdata/master/tools/cdata.png)
 
 Briefly `cdata` supplies data transform operators that:
 
@@ -20,7 +19,12 @@ Briefly `cdata` supplies data transform operators that:
 
 A quick example:
 
-```{r ex1}
+```{r chkpkg}
+run_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("DBI", quietly = TRUE)
+```
+
+```{r ex1, eval=run_vignette}
 library("cdata")
 my_db <- DBI::dbConnect(RSQLite::SQLite(), 
                         ":memory:")

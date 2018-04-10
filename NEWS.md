@@ -1,5 +1,10 @@
 
+# cdata 0.7.0 2018/04/09
 
+ * Narrow dependencies.
+ * Switch to dbExecute() (sparklyr seems to have that now).
+ * Non-DB implementations for local data case.
+ * Remove deprecated fns.
 
 # cdata 0.6.0 2018/03/12
 

@@ -2,108 +2,16 @@
 # Contributed by John Mount jmount@win-vector.com , ownership assigned to Win-Vector LLC.
 # Win-Vector LLC currently distributes this code without intellectual property indemnification, warranty, claim of fitness of purpose, or any other guarantee under a GPL3 license.
 
-#' @importFrom wrapr %.>% let mapsyms
+
+# Core functionality on databases.
+
+
+#' @importFrom wrapr %.>% let mapsyms :=
 NULL
 
 
-isSpark <- function(db) {
-  if(is.null(db)) {
-    return(FALSE)
-  }
-  length(intersect(c("spark_connection", "spark_shell_connection"),
-            class(db)))>0
-}
 
-#' List columns of a table
-#'
-#' @param my_db DBI database connection
-#' @param tableName character name of table
-#' @return list of column names
-#'
-#' @examples
-#'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-#' DBI::dbWriteTable(my_db,
-#'                   'd',
-#'                   data.frame(AUC = 0.6, R2 = 0.2, nope = -5),
-#'                   overwrite = TRUE,
-#'                   temporary = TRUE)
-#' cols(my_db, 'd')
-#' cT <- build_unpivot_control(
-#'   nameForNewKeyColumn= 'meas',
-#'   nameForNewValueColumn= 'val',
-#'   columnsToTakeFrom= setdiff(cols(my_db, 'd'), "nope"))
-#' print(cT)
-#' tab <- rowrecs_to_blocks_q('d', cT, my_db = my_db)
-#' qlook(my_db, tab)
-#' DBI::dbDisconnect(my_db)
-#'
-#' @export
-#'
-cols <- function(my_db, tableName) {
-  # comment out block fails intermitnently, and sometimes gives wrong results
-  # filed as: https://github.com/tidyverse/dplyr/issues/3204
-  # tryCatch(
-  #   return(DBI::dbListFields(my_db, tableName)),
-  #   error = function(e) { NULL })
-  # below is going to have issues to to R-column name conversion!
-  q <- paste0("SELECT * FROM ",
-              DBI::dbQuoteIdentifier(my_db, tableName),
-              " LIMIT 1")
-  v <- DBI::dbGetQuery(my_db, q)
-  colnames(v)
-}
-
-#' Quick look at remote data
-#'
-#' @param my_db DBI database handle
-#' @param tableName name of table to look at
-#' @param displayRows number of rows to sample
-#' @param countRows logical, if TRUE return row count.
-#' @return str-line view of data
-#'
-#' @examples
-#'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-#' DBI::dbWriteTable(my_db,
-#'                   'd',
-#'                   data.frame(AUC = 0.6, R2 = 0.2),
-#'                   overwrite = TRUE,
-#'                   temporary = TRUE)
-#' qlook(my_db, 'd')
-#' DBI::dbDisconnect(my_db)
-#'
-#' @export
-#'
-qlook <- function(my_db, tableName,
-                  displayRows = 10,
-                  countRows = TRUE) {
-  h <- DBI::dbGetQuery(my_db,
-                       paste0("SELECT * FROM ",
-                              DBI::dbQuoteIdentifier(my_db, tableName),
-                              " LIMIT ", displayRows))
-  cat(paste('table',
-            DBI::dbQuoteIdentifier(my_db, tableName),
-            paste(class(my_db), collapse = ' '),
-            '\n'))
-  if(countRows) {
-    nrow <- DBI::dbGetQuery(my_db,
-                            paste0("SELECT COUNT(1) FROM ",
-                                   DBI::dbQuoteIdentifier(my_db, tableName)))[1,1, drop=TRUE]
-    cat(paste(" nrow:", nrow, '\n'))
-    if(nrow>displayRows) {
-      cat(" NOTE: \"obs\" below is count of sample, not number of rows of data.\n")
-    }
-  } else {
-    cat(" NOTE: \"obs\" below is count of sample, not number of rows of data.\n")
-  }
-  utils::str(h)
-  invisible(NULL)
-}
-
-
-
-# confirm control table has uniqueness
+# confirm control table structure
 checkControlTable <- function(controlTable, strict) {
   if(!is.data.frame(controlTable)) {
     return("control table must be a data.frame")
@@ -144,37 +52,106 @@ checkControlTable <- function(controlTable, strict) {
 
 
 
-#' Build a moveValuesToColumns*() control table that specifies a un-pivot (or "shred").
+
+
+#' List columns of a table
 #'
-#' Some discussion and examples can be found here:
-#' \url{https://winvector.github.io/FluidData/FluidData.html} and
-#' here \url{https://github.com/WinVector/cdata}.
-#'
-#' @param nameForNewKeyColumn character name of column to write new keys in.
-#' @param nameForNewValueColumn character name of column to write new values in.
-#' @param columnsToTakeFrom character array names of columns to take values from.
-#' @param ... not used, force later args to be by name
-#' @return control table
-#'
-#' @seealso \code{\link{rowrecs_to_blocks_q}}, \code{\link{rowrecs_to_blocks}}
+#' @param my_db DBI database connection
+#' @param tableName character name of table
+#' @return list of column names
 #'
 #' @examples
 #'
-#' build_unpivot_control("measurmentType", "measurmentValue", c("c1", "c2"))
+#' if (  requireNamespace("DBI", quietly = TRUE) &&
+#'     requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#'   DBI::dbWriteTable(my_db,
+#'                     'd',
+#'                     data.frame(AUC = 0.6, R2 = 0.2, nope = -5),
+#'                     overwrite = TRUE,
+#'                     temporary = TRUE)
+#'   cols(my_db, 'd')
+#'   cT <- build_unpivot_control(
+#'     nameForNewKeyColumn= 'meas',
+#'     nameForNewValueColumn= 'val',
+#'     columnsToTakeFrom= setdiff(cols(my_db, 'd'), "nope"))
+#'   print(cT)
+#'   tab <- rowrecs_to_blocks_q('d', cT, my_db = my_db)
+#'   qlook(my_db, tab)
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
-build_unpivot_control <- function(nameForNewKeyColumn,
-                                  nameForNewValueColumn,
-                                  columnsToTakeFrom,
-                                  ...) {
-  if(length(list(...))>0) {
-    stop("cdata::build_unpivot_control unexpected arguments.")
+#'
+cols <- function(my_db, tableName) {
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::cols requires DBI package")
   }
-  controlTable <- data.frame(x = as.character(columnsToTakeFrom),
-                             y = as.character(columnsToTakeFrom),
-                             stringsAsFactors = FALSE)
-  colnames(controlTable) <- c(nameForNewKeyColumn, nameForNewValueColumn)
-  controlTable
+  # comment out block fails intermitnently, and sometimes gives wrong results
+  # filed as: https://github.com/tidyverse/dplyr/issues/3204
+  # tryCatch(
+  #   return(DBI::dbListFields(my_db, tableName)),
+  #   error = function(e) { NULL })
+  # below is going to have issues to to R-column name conversion!
+  q <- paste0("SELECT * FROM ",
+              DBI::dbQuoteIdentifier(my_db, tableName),
+              " LIMIT 1")
+  v <- DBI::dbGetQuery(my_db, q)
+  colnames(v)
+}
+
+#' Quick look at remote data
+#'
+#' @param my_db DBI database handle
+#' @param tableName name of table to look at
+#' @param displayRows number of rows to sample
+#' @param countRows logical, if TRUE return row count.
+#' @return str-line view of data
+#'
+#' @examples
+#'
+#' if ( requireNamespace("DBI", quietly = TRUE) &&
+#'   requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#'   DBI::dbWriteTable(my_db,
+#'                     'd',
+#'                     data.frame(AUC = 0.6, R2 = 0.2),
+#'                     overwrite = TRUE,
+#'                     temporary = TRUE)
+#'   qlook(my_db, 'd')
+#'   DBI::dbDisconnect(my_db)
+#' }
+#'
+#' @export
+#'
+qlook <- function(my_db, tableName,
+                  displayRows = 10,
+                  countRows = TRUE) {
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::qlook requires DBI package")
+  }
+  h <- DBI::dbGetQuery(my_db,
+                       paste0("SELECT * FROM ",
+                              DBI::dbQuoteIdentifier(my_db, tableName),
+                              " LIMIT ", displayRows))
+  cat(paste('table',
+            DBI::dbQuoteIdentifier(my_db, tableName),
+            paste(class(my_db), collapse = ' '),
+            '\n'))
+  if(countRows) {
+    nrow <- DBI::dbGetQuery(my_db,
+                            paste0("SELECT COUNT(1) FROM ",
+                                   DBI::dbQuoteIdentifier(my_db, tableName)))[1,1, drop=TRUE]
+    nrow <- as.numeric(nrow) # defend against Rpostgres integer64
+    cat(paste(" nrow:", nrow, '\n'))
+    if(nrow>displayRows) {
+      cat(" NOTE: \"obs\" below is count of sample, not number of rows of data.\n")
+    }
+  } else {
+    cat(" NOTE: \"obs\" below is count of sample, not number of rows of data.\n")
+  }
+  utils::str(h)
+  invisible(NULL)
 }
 
 
@@ -212,9 +189,9 @@ build_unpivot_control <- function(nameForNewKeyColumn,
 #' @param controlTable table specifying mapping (local data frame)
 #' @param my_db db handle
 #' @param ... force later arguments to be by name.
-#' @param columnsToCopy character list of column names to copy
+#' @param columnsToCopy character array of column names to copy
 #' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
-#' @param strict logical, if TRUE check control table contents for uniqueness
+#' @param strict logical, if TRUE check control table name forms
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
@@ -226,21 +203,24 @@ build_unpivot_control <- function(nameForNewKeyColumn,
 #'
 #' @examples
 #'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#' if (requireNamespace("DBI", quietly = TRUE) &&
+#'   requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
 #'
-#' # un-pivot example
-#' d <- data.frame(AUC = 0.6, R2 = 0.2)
-#' DBI::dbWriteTable(my_db,
-#'                   'd',
-#'                   d,
-#'                   overwrite = TRUE,
-#'                   temporary = TRUE)
-#' cT <- build_unpivot_control(nameForNewKeyColumn= 'meas',
-#'                                nameForNewValueColumn= 'val',
-#'                                columnsToTakeFrom= c('AUC', 'R2'))
-#' tab <- rowrecs_to_blocks_q('d', cT, my_db = my_db)
-#' qlook(my_db, tab)
-#' DBI::dbDisconnect(my_db)
+#'   # un-pivot example
+#'   d <- data.frame(AUC = 0.6, R2 = 0.2)
+#'   DBI::dbWriteTable(my_db,
+#'                     'd',
+#'                     d,
+#'                     overwrite = TRUE,
+#'                     temporary = TRUE)
+#'   cT <- build_unpivot_control(nameForNewKeyColumn= 'meas',
+#'                               nameForNewValueColumn= 'val',
+#'                               columnsToTakeFrom= c('AUC', 'R2'))
+#'   tab <- rowrecs_to_blocks_q('d', cT, my_db = my_db)
+#'   qlook(my_db, tab)
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
 #'
@@ -256,8 +236,9 @@ rowrecs_to_blocks_q <- function(wideTable,
                                 defaultValue = NULL,
                                 temporary = FALSE,
                                 resultName = NULL) {
-  if(length(list(...))>0) {
-    stop("cdata::rowrecs_to_blocks_q unexpected arguments.")
+  wrapr::stop_if_dot_args(substitute(list(...)), "cdata::rowrecs_to_blocks_q")
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::rowrecs_to_blocks_q requires DBI package")
   }
   if(length(columnsToCopy)>0) {
     if(!is.character(columnsToCopy)) {
@@ -284,18 +265,10 @@ rowrecs_to_blocks_q <- function(wideTable,
   }
   ctabName <- tempNameGenerator()
   rownames(controlTable) <- NULL # just in case
-  if(!isSpark(my_db)) {
-    DBI::dbWriteTable(my_db,
-                      ctabName,
-                      controlTable,
-                      overwrite = TRUE,
-                      temporary = TRUE)
-  } else {
-    DBI::dbWriteTable(my_db,
+  DBI::dbWriteTable(my_db,
                       ctabName,
                       controlTable,
                       temporary = TRUE)
-  }
   if(is.null(resultName)) {
     resName <- tempNameGenerator()
   } else {
@@ -361,124 +334,15 @@ rowrecs_to_blocks_q <- function(wideTable,
   if(showQuery) {
     print(q)
   }
-  tryCatch(
-    # sparklyr didn't implement dbExecute(), so using dbGetQuery()
-    DBI::dbGetQuery(my_db, q),
-    warning = function(w) { NULL })
+  DBI::dbExecute(my_db, q)
   resName
 }
 
 
-#' Map a set of columns to rows (takes a \code{data.frame}).
-#'
-#' Transform data facts from columns into additional rows controlTable.
-#'
-#' This is using the theory of "fluid data"n
-#' (\url{https://github.com/WinVector/cdata}), which includes the
-#' principle that each data cell has coordinates independent of the
-#' storage details and storage detail dependent coordinates (usually
-#' row-id, column-id, and group-id) can be re-derived at will (the
-#' other principle is that there may not be "one true preferred data
-#' shape" and many re-shapings of data may be needed to match data to
-#' different algorithms and methods).
-#'
-#' The controlTable defines the names of each data element in the two notations:
-#' the notation of the tall table (which is row oriented)
-#' and the notation of the wide table (which is column oriented).
-#' controlTable[ , 1] (the group label) cross colnames(controlTable)
-#' (the column labels) are names of data cells in the long form.
-#' controlTable[ , 2:ncol(controlTable)] (column labels)
-#' are names of data cells in the wide form.
-#' To get behavior similar to tidyr::gather/spread one builds the control table
-#' by running an appropiate query over the data.
-#'
-#' Some discussion and examples can be found here:
-#' \url{https://winvector.github.io/FluidData/FluidData.html} and
-#' here \url{https://github.com/WinVector/cdata}.
-#'
-#' @param wideTable data.frame containing data to be mapped (in-memory data.frame).
-#' @param controlTable table specifying mapping (local data frame).
-#' @param ... force later arguments to be by name.
-#' @param columnsToCopy character list of column names to copy
-#' @param strict logical, if TRUE check control table contents for uniqueness
-#' @param checkNames logical, if TRUE check names
-#' @param showQuery if TRUE print query
-#' @param defaultValue if not NULL literal to use for non-match values.
-#' @param env environment to look for "winvector_temp_db_handle" in.
-#' @return long table built by mapping wideTable to one row per group
-#'
-#' @seealso \code{\link{build_unpivot_control}}, \code{\link{blocks_to_rowrecs_q}}
-#'
-#' @examples
-#'
-#' # un-pivot example
-#' d <- data.frame(AUC = 0.6, R2 = 0.2)
-#' cT <- build_unpivot_control(nameForNewKeyColumn= 'meas',
-#'                                nameForNewValueColumn= 'val',
-#'                                columnsToTakeFrom= c('AUC', 'R2'))
-#' tab <- rowrecs_to_blocks(d, cT)
-#'
-#'
-#' @export
-#'
-rowrecs_to_blocks <- function(wideTable,
-                              controlTable,
-                              ...,
-                              columnsToCopy = NULL,
-                              strict = FALSE,
-                              checkNames = TRUE,
-                              showQuery = FALSE,
-                              defaultValue = NULL,
-                              env = parent.frame()) {
-  if(length(list(...))>0) {
-    stop("cdata::rowrecs_to_blocks unexpected arguments.")
-  }
-  wtname <- "cata_wide_tmp"
-  need_close <- FALSE
-  db_handle <- base::mget("winvector_temp_db_handle",
-                          envir = env,
-                          ifnotfound = list(NULL),
-                          inherits = TRUE)[[1]]
-  if(is.null(db_handle)) {
-    my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-    need_close = TRUE
-  } else {
-    my_db <- db_handle$db
-  }
-  rownames(wideTable) <- NULL # just in case
-  if(!isSpark(my_db)) {
-    DBI::dbWriteTable(my_db,
-                      wtname,
-                      wideTable,
-                      overwrite = TRUE,
-                      temporary = TRUE)
-  } else {
-    DBI::dbWriteTable(my_db,
-                      wtname,
-                      wideTable,
-                      temporary = TRUE)
-  }
-  resName <- rowrecs_to_blocks_q(wideTable = wtname,
-                                 controlTable = controlTable,
-                                 my_db = my_db,
-                                 columnsToCopy = columnsToCopy,
-                                 tempNameGenerator = mk_tmp_name_source('mvtrq'),
-                                 strict = strict,
-                                 checkNames = checkNames,
-                                 showQuery = showQuery,
-                                 defaultValue = defaultValue)
-  resData <- DBI::dbGetQuery(my_db, paste("SELECT * FROM", resName))
-  x <- DBI::dbExecute(my_db, paste("DROP TABLE", wtname))
-  x <- DBI::dbExecute(my_db, paste("DROP TABLE", resName))
-  if(need_close) {
-    DBI::dbDisconnect(my_db)
-  }
-  resData
-}
 
 
 
-#' Build a moveValuesToColumns*() control table that specifies a pivot (query based, takes name of table).
+#' Build a blocks_to_rowrecs_q() control table that specifies a pivot (query based, takes name of table).
 #'
 #' Some discussion and examples can be found here: \url{https://winvector.github.io/FluidData/FluidData.html}.
 #'
@@ -495,19 +359,23 @@ rowrecs_to_blocks <- function(wideTable,
 #'
 #' @examples
 #'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-#' d <- data.frame(measType = c("wt", "ht"),
-#'                 measValue = c(150, 6),
-#'                 stringsAsFactors = FALSE)
-#' DBI::dbWriteTable(my_db,
-#'                   'd',
-#'                   d,
-#'                   overwrite = TRUE,
-#'                   temporary = TRUE)
-#' build_pivot_control_q('d', 'measType', 'measValue',
-#'                                  my_db = my_db,
-#'                                  sep = '_')
-#' DBI::dbDisconnect(my_db)
+#' if (requireNamespace("DBI", quietly = TRUE) &&
+#'   requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#'   d <- data.frame(measType = c("wt", "ht"),
+#'                   measValue = c(150, 6),
+#'                   stringsAsFactors = FALSE)
+#'   DBI::dbWriteTable(my_db,
+#'                     'd',
+#'                     d,
+#'                     overwrite = TRUE,
+#'                     temporary = TRUE)
+#'   build_pivot_control_q('d', 'measType', 'measValue',
+#'                         my_db = my_db,
+#'                         sep = '_') %.>%
+#'      print(.)
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
 build_pivot_control_q <- function(tableName,
@@ -517,8 +385,9 @@ build_pivot_control_q <- function(tableName,
                                   ...,
                                   prefix = columnToTakeKeysFrom,
                                   sep = NULL) {
-  if(length(list(...))>0) {
-    stop("cdata::build_pivot_control_q unexpected arguments.")
+  wrapr::stop_if_dot_args(substitute(list(...)), "cdata::build_pivot_control_q")
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::build_pivot_control_q requires DBI package")
   }
   q <- paste0("SELECT ",
               DBI::dbQuoteIdentifier(my_db, columnToTakeKeysFrom),
@@ -538,79 +407,6 @@ build_pivot_control_q <- function(tableName,
 }
 
 
-
-#' Build a moveValuesToColumns*() control table that specifies a pivot from a \code{data.frame}.
-#'
-#' Some discussion and examples can be found here: \url{https://winvector.github.io/FluidData/FluidData.html}.
-#'
-#' @param table data.frame to scan for new column names (in-memory data.frame).
-#' @param columnToTakeKeysFrom character name of column build new column names from.
-#' @param columnToTakeValuesFrom character name of column to get values from.
-#' @param ... not used, force later args to be by name
-#' @param prefix column name prefix (only used when sep is not NULL)
-#' @param sep separator to build complex column names.
-#' @param env environment to look for "winvector_temp_db_handle" in.
-#' @return control table
-#'
-#' @seealso \code{\link{blocks_to_rowrecs_q}}
-#'
-#' @examples
-#'
-#' d <- data.frame(measType = c("wt", "ht"),
-#'                 measValue = c(150, 6),
-#'                 stringsAsFactors = FALSE)
-#' build_pivot_control(d,
-#'                         'measType', 'measValue',
-#'                         sep = '_')
-#'
-#' @export
-build_pivot_control <- function(table,
-                                columnToTakeKeysFrom,
-                                columnToTakeValuesFrom,
-                                ...,
-                                prefix = columnToTakeKeysFrom,
-                                sep = NULL,
-                                env = parent.frame()) {
-  if(length(list(...))>0) {
-    stop("cdata::build_pivot_control unexpected arguments.")
-  }
-  need_close <- FALSE
-  db_handle <- base::mget("winvector_temp_db_handle",
-                          envir = env,
-                          ifnotfound = list(NULL),
-                          inherits = TRUE)[[1]]
-  if(is.null(db_handle)) {
-    my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-    need_close = TRUE
-  } else {
-    my_db <- db_handle$db
-  }
-  ptabtmpnam <- "cdata_build_pc_tmp"
-  rownames(table) <- NULL # just in case
-  if(!isSpark(my_db)) {
-    DBI::dbWriteTable(my_db,
-                      ptabtmpnam,
-                      table,
-                      overwrite = TRUE,
-                      temporary = TRUE)
-  } else {
-    DBI::dbWriteTable(my_db,
-                      ptabtmpnam,
-                      table,
-                      temporary = TRUE)
-  }
-  res <- build_pivot_control_q(tableName = ptabtmpnam,
-                               columnToTakeKeysFrom = columnToTakeKeysFrom,
-                               columnToTakeValuesFrom = columnToTakeValuesFrom,
-                               my_db = my_db,
-                               prefix = prefix,
-                               sep = sep)
-  x <- DBI::dbExecute(my_db, paste("DROP TABLE", ptabtmpnam))
-  if(need_close) {
-    DBI::dbDisconnect(my_db)
-  }
-  res
-}
 
 
 
@@ -649,7 +445,7 @@ build_pivot_control <- function(table,
 #' @param ... force later arguments to be by name.
 #' @param columnsToCopy character list of column names to copy
 #' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
-#' @param strict logical, if TRUE check control table contents for uniqueness
+#' @param strict logical, if TRUE check control table name forms
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
@@ -662,23 +458,26 @@ build_pivot_control <- function(table,
 #'
 #' @examples
 #'
-#' my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-#' # pivot example
-#' d <- data.frame(meas = c('AUC', 'R2'), val = c(0.6, 0.2))
-#' DBI::dbWriteTable(my_db,
-#'                   'd',
-#'                   d,
-#'                   temporary = TRUE)
-#' cT <- build_pivot_control_q('d',
-#'                                        columnToTakeKeysFrom= 'meas',
-#'                                        columnToTakeValuesFrom= 'val',
-#'                                        my_db = my_db)
-#' tab <- blocks_to_rowrecs_q('d',
-#'                                      keyColumns = NULL,
-#'                                      controlTable = cT,
-#'                                      my_db = my_db)
-#' qlook(my_db, tab)
-#' DBI::dbDisconnect(my_db)
+#' if (requireNamespace("DBI", quietly = TRUE) &&
+#'   requireNamespace("RSQLite", quietly = TRUE)) {
+#'   my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+#'   # pivot example
+#'   d <- data.frame(meas = c('AUC', 'R2'), val = c(0.6, 0.2))
+#'   DBI::dbWriteTable(my_db,
+#'                     'd',
+#'                     d,
+#'                     temporary = TRUE)
+#'   cT <- build_pivot_control_q('d',
+#'                               columnToTakeKeysFrom= 'meas',
+#'                               columnToTakeValuesFrom= 'val',
+#'                               my_db = my_db)
+#'   tab <- blocks_to_rowrecs_q('d',
+#'                              keyColumns = NULL,
+#'                              controlTable = cT,
+#'                              my_db = my_db)
+#'   qlook(my_db, tab)
+#'   DBI::dbDisconnect(my_db)
+#' }
 #'
 #' @export
 #'
@@ -696,8 +495,9 @@ blocks_to_rowrecs_q <- function(tallTable,
                                 dropDups = FALSE,
                                 temporary = FALSE,
                                 resultName = NULL) {
-  if(length(list(...))>0) {
-    stop("cdata::blocks_to_rowrecs_q unexpected arguments.")
+  wrapr::stop_if_dot_args(substitute(list(...)), "cdata::blocks_to_rowrecs_q")
+  if(!requireNamespace("DBI", quietly = TRUE)) {
+    stop("cdata::blocks_to_rowrecs_q requires DBI package")
   }
   if(length(keyColumns)>0) {
     if(!is.character(keyColumns)) {
@@ -727,18 +527,10 @@ blocks_to_rowrecs_q <- function(tallTable,
   }
   ctabName <- tempNameGenerator()
   rownames(controlTable) <- NULL # just in case
-  if(!isSpark(my_db)) {
-    DBI::dbWriteTable(my_db,
-                      ctabName,
-                      controlTable,
-                      overwrite = TRUE,
-                      temporary = TRUE)
-  } else {
-    DBI::dbWriteTable(my_db,
+  DBI::dbWriteTable(my_db,
                       ctabName,
                       controlTable,
                       temporary = TRUE)
-  }
   if(is.null(resultName)) {
     resName <- tempNameGenerator()
   } else {
@@ -823,128 +615,8 @@ blocks_to_rowrecs_q <- function(tallTable,
   if(showQuery) {
     print(q)
   }
-  tryCatch(
-    # sparklyr didn't implement dbExecute(), so using dbGetQuery()
-    DBI::dbGetQuery(my_db, q),
-    warning = function(w) { NULL })
+  DBI::dbExecute(my_db, q)
   resName
 }
-
-
-#' Map sets rows to columns (takes a \code{data.frame}).
-#'
-#' Transform data facts from rows into additional columns using controlTable.
-#'
-#' This is using the theory of "fluid data"n
-#' (\url{https://github.com/WinVector/cdata}), which includes the
-#' principle that each data cell has coordinates independent of the
-#' storage details and storage detail dependent coordinates (usually
-#' row-id, column-id, and group-id) can be re-derived at will (the
-#' other principle is that there may not be "one true preferred data
-#' shape" and many re-shapings of data may be needed to match data to
-#' different algorithms and methods).
-#'
-#' The controlTable defines the names of each data element in the two notations:
-#' the notation of the tall table (which is row oriented)
-#' and the notation of the wide table (which is column oriented).
-#' controlTable[ , 1] (the group label) cross colnames(controlTable)
-#' (the column labels) are names of data cells in the long form.
-#' controlTable[ , 2:ncol(controlTable)] (column labels)
-#' are names of data cells in the wide form.
-#' To get behavior similar to tidyr::gather/spread one builds the control table
-#' by running an appropiate query over the data.
-#'
-#' Some discussion and examples can be found here:
-#' \url{https://winvector.github.io/FluidData/FluidData.html} and
-#' here \url{https://github.com/WinVector/cdata}.
-#'
-#' @param tallTable data.frame containing data to be mapped (in-memory data.frame).
-#' @param keyColumns character list of column defining row groups
-#' @param controlTable table specifying mapping (local data frame)
-#' @param ... force later arguments to be by name.
-#' @param columnsToCopy character list of column names to copy
-#' @param strict logical, if TRUE check control table contents for uniqueness
-#' @param checkNames logical, if TRUE check names
-#' @param showQuery if TRUE print query
-#' @param defaultValue if not NULL literal to use for non-match values.
-#' @param dropDups logical if TRUE supress duplicate columns (duplicate determined by name, not content).
-#' @param env environment to look for "winvector_temp_db_handle" in.
-#' @return wide table built by mapping key-grouped tallTable rows to one row per group
-#'
-#' @seealso \code{\link{rowrecs_to_blocks_q}}, \code{\link{build_pivot_control}}
-#'
-#' @examples
-#'
-#' # pivot example
-#' d <- data.frame(meas = c('AUC', 'R2'), val = c(0.6, 0.2))
-#'
-#' cT <- build_pivot_control(d,
-#'                               columnToTakeKeysFrom= 'meas',
-#'                               columnToTakeValuesFrom= 'val')
-#' blocks_to_rowrecs(d,
-#'                      keyColumns = NULL,
-#'                      controlTable = cT)
-#'
-#' @export
-#'
-blocks_to_rowrecs <- function(tallTable,
-                              keyColumns,
-                              controlTable,
-                              ...,
-                              columnsToCopy = NULL,
-                              strict = FALSE,
-                              checkNames = TRUE,
-                              showQuery = FALSE,
-                              defaultValue = NULL,
-                              dropDups = FALSE,
-                              env = parent.frame()) {
-  if(length(list(...))>0) {
-    stop("cdata::blocks_to_rowrecs unexpected arguments.")
-  }
-  need_close <- FALSE
-  db_handle <- base::mget("winvector_temp_db_handle",
-                          envir = env,
-                          ifnotfound = list(NULL),
-                          inherits = TRUE)[[1]]
-  if(is.null(db_handle)) {
-    my_db <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
-    need_close = TRUE
-  } else {
-    my_db <- db_handle$db
-  }
-  talltbltmpnam <- "cdata_tall_tmp"
-  rownames(tallTable) <- NULL # just in case
-  if(!isSpark(my_db)) {
-    DBI::dbWriteTable(my_db,
-                      talltbltmpnam,
-                      tallTable,
-                      temporary = TRUE,
-                      overwrite = TRUE)
-  } else {
-    DBI::dbWriteTable(my_db,
-                      talltbltmpnam,
-                      tallTable,
-                      temporary = TRUE)
-  }
-  resName <- blocks_to_rowrecs_q(tallTable = talltbltmpnam,
-                                 keyColumns = keyColumns,
-                                 controlTable = controlTable,
-                                 my_db = my_db,
-                                 columnsToCopy = columnsToCopy,
-                                 tempNameGenerator = mk_tmp_name_source('mvtcq'),
-                                 strict = strict,
-                                 checkNames = checkNames,
-                                 showQuery = showQuery,
-                                 defaultValue = defaultValue,
-                                 dropDups = dropDups)
-  resData <- DBI::dbGetQuery(my_db, paste("SELECT * FROM", resName))
-  x <- DBI::dbExecute(my_db, paste("DROP TABLE", talltbltmpnam))
-  x <- DBI::dbExecute(my_db, paste("DROP TABLE", resName))
-  if(need_close) {
-    DBI::dbDisconnect(my_db)
-  }
-  resData
-}
-
 
 

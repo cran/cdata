@@ -1,4 +1,8 @@
 
+
+# adapters for more direct pivot/un-pivot notation
+# (hides details of control table)
+
 #' @importFrom wrapr %.>%
 #' @importFrom stats complete.cases
 #' @importFrom wrapr let
@@ -21,9 +25,13 @@ NULL
 #' checkColsFormUniqueKeys(d, 'key')
 #' d <- data.frame(key = c('a','a', 'b'), k2 = c(1 ,2, 2))
 #' checkColsFormUniqueKeys(d, c('key', 'k2'))
+#'
 #' @export
 #'
 checkColsFormUniqueKeys <- function(data, keyColNames) {
+  if(!is.data.frame(data)) {
+    stop("cdata:::checkColsFormUniqueKeys data should be a data.frame")
+  }
   cn <- colnames(data)
   if(length(keyColNames)!=length(unique(keyColNames, allowNAKeys=TRUE))) {
     stop("cdata::checkColsFormUniqueKeys keyColNames must not have duplicates")
@@ -44,6 +52,8 @@ checkColsFormUniqueKeys <- function(data, keyColNames) {
   return(anyDuplicated(data)<=0)
 }
 
+
+
 #' Move values from columns to rows (anti-pivot, or "shred").
 #'
 #' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
@@ -56,16 +66,18 @@ checkColsFormUniqueKeys <- function(data, keyColNames) {
 #' @param columnsToTakeFrom character array names of columns to take values from.
 #' @param ... force later argumets to bind by name.
 #' @param nameForNewClassColumn optional name to land original cell classes to.
-#' @param env environment to look for "winvector_temp_db_handle" in.
 #' @return new data.frame with values moved to rows.
 #'
 #' @examples
 #'
-#' d <- data.frame(AUC= 0.6, R2= 0.2)
-#' unpivot_to_blocks(d,
-#'                  nameForNewKeyColumn= 'meas',
-#'                  nameForNewValueColumn= 'val',
-#'                  columnsToTakeFrom= c('AUC', 'R2'))
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
+#'   d <- data.frame(AUC= 0.6, R2= 0.2)
+#'   unpivot_to_blocks(d,
+#'                     nameForNewKeyColumn= 'meas',
+#'                     nameForNewValueColumn= 'val',
+#'                     columnsToTakeFrom= c('AUC', 'R2')) %.>%
+#'      print(.)
+#' }
 #'
 #' @export
 #'
@@ -75,15 +87,12 @@ unpivot_to_blocks <- function(data,
                               nameForNewValueColumn,
                               columnsToTakeFrom,
                               ...,
-                              nameForNewClassColumn = NULL,
-                              env = parent.frame()) {
+                              nameForNewClassColumn = NULL) {
   if(!is.data.frame(data)) {
     stop("cdata::unpivot_to_blocks data must be a local data.frame")
   }
+  wrapr::stop_if_dot_args(substitute(list(...)), "cdata::unpivot_to_blocks")
   cn <- colnames(data)
-  if(length(list(...))>0) {
-    stop("cdata::unpivot_to_blocks unexpected arguments")
-  }
   if(length(nameForNewKeyColumn)!=1) {
     stop("cdata::unpivot_to_blocks nameForNewKeyColumn must be length 1")
   }
@@ -137,8 +146,7 @@ unpivot_to_blocks <- function(data,
   colsToCopy <- setdiff(colnames(data), columnsToTakeFrom)
   res <- rowrecs_to_blocks(data,
                            controlTable = cT,
-                           columnsToCopy = colsToCopy,
-                           env = env)
+                           columnsToCopy = colsToCopy)
   if(!is.null(nameForNewClassColumn)) {
     classMap <- vapply(data, class, character(1))
     names(classMap) <- colnames(data)
@@ -159,16 +167,18 @@ unpivot_to_blocks <- function(data,
 #' @param rowKeyColumns character array names columns that should be table keys.
 #' @param ... force later arguments to bind by name.
 #' @param sep character if not null build more detailed column names.
-#' @param env environment to look for "winvector_temp_db_handle" in.
 #' @return new data.frame with values moved to columns.
 #'
 #' @examples
 #'
-#' d <- data.frame(meas= c('AUC', 'R2'), val= c(0.6, 0.2))
-#' pivot_to_rowrecs(d,
-#'                     columnToTakeKeysFrom= 'meas',
-#'                     columnToTakeValuesFrom= 'val',
-#'                     rowKeyColumns= c())
+#' if (requireNamespace("RSQLite", quietly = TRUE)) {
+#'   d <- data.frame(meas= c('AUC', 'R2'), val= c(0.6, 0.2))
+#'   pivot_to_rowrecs(d,
+#'                    columnToTakeKeysFrom= 'meas',
+#'                    columnToTakeValuesFrom= 'val',
+#'                    rowKeyColumns= c()) %.>%
+#'      print(.)
+#' }
 #'
 #' @export
 #'
@@ -177,15 +187,12 @@ pivot_to_rowrecs <- function(data,
                              columnToTakeValuesFrom,
                              rowKeyColumns,
                              ...,
-                             sep = NULL,
-                             env = parent.frame()) {
+                             sep = NULL) {
   if(!is.data.frame(data)) {
     stop("cdata::pivot_to_rowrecs data must be a local data.frame")
   }
+  wrapr::stop_if_dot_args(substitute(list(...)), "cdata::pivot_to_rowrecs")
   cn <- colnames(data)
-  if(length(list(...))>0) {
-    stop("cdata::pivot_to_rowrecs unexpected arguments")
-  }
   if(length(columnToTakeKeysFrom)!=1) {
     stop("cdata::pivot_to_rowrecs columnToTakeKeysFrom must be length 1")
   }
@@ -248,14 +255,12 @@ pivot_to_rowrecs <- function(data,
   cT <- build_pivot_control(data,
                             columnToTakeKeysFrom = columnToTakeKeysFrom,
                             columnToTakeValuesFrom = columnToTakeValuesFrom,
-                            sep = sep,
-                            env = env)
+                            sep = sep)
   colsToCopy <- setdiff(colnames(data),
                         c(columnToTakeKeysFrom, columnToTakeValuesFrom, rowKeyColumns))
   blocks_to_rowrecs(data,
                     keyColumns = rowKeyColumns,
                     controlTable = cT,
-                    columnsToCopy = colsToCopy,
-                    env = env)
+                    columnsToCopy = colsToCopy)
 }
 

@@ -1,4 +1,8 @@
-## ----ex1-----------------------------------------------------------------
+## ----chkpkg--------------------------------------------------------------
+run_vignette <- requireNamespace("RSQLite", quietly = TRUE) &&
+  requireNamespace("DBI", quietly = TRUE)
+
+## ----ex1, eval=run_vignette----------------------------------------------
 library("cdata")
 my_db <- DBI::dbConnect(RSQLite::SQLite(), 
                         ":memory:")
