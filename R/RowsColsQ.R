@@ -6,9 +6,6 @@
 # Core functionality on databases.
 
 
-#' @importFrom wrapr %.>% let mapsyms :=
-NULL
-
 
 
 # confirm control table structure
@@ -81,7 +78,7 @@ checkControlTable <- function(controlTable, strict) {
 #'   DBI::dbDisconnect(my_db)
 #' }
 #'
-#' @export
+#' @noRd
 #'
 cols <- function(my_db, tableName) {
   if(!requireNamespace("DBI", quietly = TRUE)) {
@@ -106,7 +103,7 @@ cols <- function(my_db, tableName) {
 #' @param tableName name of table to look at
 #' @param displayRows number of rows to sample
 #' @param countRows logical, if TRUE return row count.
-#' @return str-line view of data
+#' @return str view of data
 #'
 #' @examples
 #'
@@ -150,7 +147,7 @@ qlook <- function(my_db, tableName,
   } else {
     cat(" NOTE: \"obs\" below is count of sample, not number of rows of data.\n")
   }
-  utils::str(h)
+  utils::str(h, list.len = length(h))
   invisible(NULL)
 }
 
@@ -199,7 +196,7 @@ qlook <- function(my_db, tableName,
 #' @param resultName character, name for result table.
 #' @return long table built by mapping wideTable to one row per group
 #'
-#' @seealso \code{\link{build_unpivot_control}}, \code{\link{blocks_to_rowrecs_q}}
+#' @seealso \code{\link{build_unpivot_control}}, \code{\link{blocks_to_rowrecs_q}}, \code{\link{rowrecs_to_blocks}}
 #'
 #' @examples
 #'
@@ -355,7 +352,7 @@ rowrecs_to_blocks_q <- function(wideTable,
 #' @param sep separator to build complex column names.
 #' @return control table
 #'
-#' @seealso \code{\link{blocks_to_rowrecs_q}}
+#' @seealso \code{\link{blocks_to_rowrecs_q}}, \code{\link{build_pivot_control_q}}
 #'
 #' @examples
 #'
@@ -454,7 +451,7 @@ build_pivot_control_q <- function(tableName,
 #' @param resultName character, name for result table.
 #' @return wide table built by mapping key-grouped tallTable rows to one row per group
 #'
-#' @seealso \code{\link{rowrecs_to_blocks_q}}, \code{\link{build_pivot_control_q}}
+#' @seealso \code{\link{rowrecs_to_blocks_q}}, \code{\link{build_pivot_control_q}}, \code{\link{blocks_to_rowrecs}}
 #'
 #' @examples
 #'

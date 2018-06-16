@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2018-04-09" />
+<meta name="date" content="2018-06-16" />
 
 <title>Frame Tools</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Frame Tools</h1>
 <h4 class="author"><em>John Mount, Win-Vector LLC</em></h4>
-<h4 class="date"><em>2018-04-09</em></h4>
+<h4 class="date"><em>2018-06-16</em></h4>
 
 
 
@@ -98,12 +98,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><code>wrapr</code> supplies the method <a href="https://winvector.github.io/wrapr/articles/FrameTools.html"><code>draw_frame</code></a> which at first glance appears to be a mere pretty-printer:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;wrapr&quot;</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">draw_frame</span>(d))</code></pre></div>
-<pre><code>build_frame(
-   &quot;names&quot;, &quot;x&quot;, &quot;y&quot; |
-   &quot;a&quot;    , 1  , 1   |
-   &quot;b&quot;    , 2  , 4   |
-   &quot;c&quot;    , 3  , 9   |
-   &quot;d&quot;    , 4  , 16  )</code></pre>
+<pre><code>wrapr::build_frame(
+   'names', 'x', 'y' |
+   'a'    , 1  , 1   |
+   'b'    , 2  , 4   |
+   'c'    , 3  , 9   |
+   'd'    , 4  , 16  )</code></pre>
 <p>However, the above rendering is actually executable <code>R</code> code. If we run it, we re-create the original <code>data.frame()</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d2 &lt;-<span class="st"> </span><span class="kw">build_frame</span>(
    <span class="st">&quot;names&quot;</span>, <span class="st">&quot;x&quot;</span>, <span class="st">&quot;y&quot;</span> <span class="op">|</span>
@@ -135,8 +135,8 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">dump</span>(<span class="st">&quot;d&quot;</span>, <span class="st">&quot;&quot;</span>))</code></pre></div>
 <pre><code>d &lt;-
 structure(list(names = c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;), x = c(1, 2, 3, 
-4), y = c(1, 4, 9, 16)), .Names = c(&quot;names&quot;, &quot;x&quot;, &quot;y&quot;), row.names = c(NA, 
--4L), class = &quot;data.frame&quot;)
+4), y = c(1, 4, 9, 16)), class = &quot;data.frame&quot;, row.names = c(NA, 
+-4L))
 d</code></pre>
 <p>One can use the combination of <code>build_frame()</code> and <code>draw_frame()</code> to neaten up by-hand examples for later use (via copy and paste):</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">draw_frame</span>(<span class="kw">build_frame</span>(
@@ -145,12 +145,12 @@ d</code></pre>
   <span class="st">&quot;b&quot;</span>, <span class="dv">2</span>,  <span class="dv">4</span>,
   <span class="st">&quot;c&quot;</span>, <span class="dv">3</span>,  <span class="dv">9</span>,
   <span class="st">&quot;d&quot;</span>, <span class="dv">4</span>, <span class="dv">16</span>)))</code></pre></div>
-<pre><code>build_frame(
-   &quot;names&quot;, &quot;x&quot;, &quot;y&quot; |
-   &quot;a&quot;    , 1  , 1   |
-   &quot;b&quot;    , 2  , 4   |
-   &quot;c&quot;    , 3  , 9   |
-   &quot;d&quot;    , 4  , 16  )</code></pre>
+<pre><code>wrapr::build_frame(
+   'names', 'x', 'y' |
+   'a'    , 1  , 1   |
+   'b'    , 2  , 4   |
+   'c'    , 3  , 9   |
+   'd'    , 4  , 16  )</code></pre>
 <p><code>build_frame()</code> allows for simple substitutions of values. In contrast the method <code>qchar_frame()</code> builds <code>data.frame</code>s containing only <code>character</code> types and doesn’t require quoting (though it does allow it).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qchar_frame</span>(
   col_<span class="dv">1</span>, col_<span class="dv">2</span>, col_<span class="dv">3</span> <span class="op">|</span>
