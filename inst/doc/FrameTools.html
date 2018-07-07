@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2018-06-16" />
+<meta name="date" content="2018-07-07" />
 
 <title>Frame Tools</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Frame Tools</h1>
 <h4 class="author"><em>John Mount, Win-Vector LLC</em></h4>
-<h4 class="date"><em>2018-06-16</em></h4>
+<h4 class="date"><em>2018-07-07</em></h4>
 
 
 
@@ -98,7 +98,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <p><code>wrapr</code> supplies the method <a href="https://winvector.github.io/wrapr/articles/FrameTools.html"><code>draw_frame</code></a> which at first glance appears to be a mere pretty-printer:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;wrapr&quot;</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">draw_frame</span>(d))</code></pre></div>
-<pre><code>wrapr::build_frame(
+<pre><code>d &lt;- wrapr::build_frame(
    'names', 'x', 'y' |
    'a'    , 1  , 1   |
    'b'    , 2  , 4   |

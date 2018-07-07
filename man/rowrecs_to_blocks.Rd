@@ -5,7 +5,7 @@
 \title{Map a set of columns to rows (takes a \code{data.frame}).}
 \usage{
 rowrecs_to_blocks(wideTable, controlTable, ..., checkNames = TRUE,
-  strict = FALSE, columnsToCopy = NULL)
+  strict = FALSE, columnsToCopy = NULL, use_data_table = TRUE)
 }
 \arguments{
 \item{wideTable}{data.frame containing data to be mapped (in-memory data.frame).}
@@ -19,6 +19,8 @@ rowrecs_to_blocks(wideTable, controlTable, ..., checkNames = TRUE,
 \item{strict}{logical, if TRUE check control table name forms}
 
 \item{columnsToCopy}{character array of column names to copy}
+
+\item{use_data_table}{logical if TRUE try to use data.table for the pivots.}
 }
 \value{
 long table built by mapping wideTable to one row per group
@@ -27,8 +29,6 @@ long table built by mapping wideTable to one row per group
 Transform data facts from columns into additional rows controlTable.
 }
 \details{
-TODO: test and and checks.
-
 This is using the theory of "fluid data"n
 (\url{https://github.com/WinVector/cdata}), which includes the
 principle that each data cell has coordinates independent of the

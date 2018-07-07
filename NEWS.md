@@ -1,4 +1,10 @@
 
+# cdata 0.7.2 2018/07/07
+
+ * switch local ops to data.table implementation.
+ * re-export more of wrapr
+ * move db fns to rquery.
+
 # cdata 0.7.1 2018/06/16
 
  * Documentation fixes.
