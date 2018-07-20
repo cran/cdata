@@ -1,8 +1,8 @@
 Package: cdata
 Type: Package
 Title: Fluid Data Transformations
-Version: 0.7.2
-Date: 2018-07-07
+Version: 0.7.3
+Date: 2018-07-20
 Authors@R: c(
     person("John", "Mount", email = "jmount@win-vector.com", role = c("aut", "cre")),
     person("Nina", "Zumel", email = "nzumel@win-vector.com", role = c("aut")),
@@ -26,9 +26,9 @@ Suggests: DBI, RSQLite, testthat, knitr, rmarkdown, data.table (>=
 VignetteBuilder: knitr
 ByteCompile: true
 NeedsCompilation: no
-Packaged: 2018-07-07 19:49:33 UTC; johnmount
+Packaged: 2018-07-20 15:10:21 UTC; johnmount
 Author: John Mount [aut, cre],
   Nina Zumel [aut],
   Win-Vector LLC [cph]
 Repository: CRAN
-Date/Publication: 2018-07-07 20:10:03 UTC
+Date/Publication: 2018-07-20 15:40:11 UTC

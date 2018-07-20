@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2018-07-07" />
+<meta name="date" content="2018-07-20" />
 
 <title>Frame Tools</title>
 
@@ -70,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Frame Tools</h1>
 <h4 class="author"><em>John Mount, Win-Vector LLC</em></h4>
-<h4 class="date"><em>2018-07-07</em></h4>
+<h4 class="date"><em>2018-07-20</em></h4>
 
 
 
@@ -99,11 +99,11 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;wrapr&quot;</span>)</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cat</span>(<span class="kw">draw_frame</span>(d))</code></pre></div>
 <pre><code>d &lt;- wrapr::build_frame(
-   'names', 'x', 'y' |
-   'a'    , 1  , 1   |
-   'b'    , 2  , 4   |
-   'c'    , 3  , 9   |
-   'd'    , 4  , 16  )</code></pre>
+   &quot;names&quot;, &quot;x&quot;, &quot;y&quot; |
+   &quot;a&quot;    , 1  , 1   |
+   &quot;b&quot;    , 2  , 4   |
+   &quot;c&quot;    , 3  , 9   |
+   &quot;d&quot;    , 4  , 16  )</code></pre>
 <p>However, the above rendering is actually executable <code>R</code> code. If we run it, we re-create the original <code>data.frame()</code>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d2 &lt;-<span class="st"> </span><span class="kw">build_frame</span>(
    <span class="st">&quot;names&quot;</span>, <span class="st">&quot;x&quot;</span>, <span class="st">&quot;y&quot;</span> <span class="op">|</span>
@@ -146,11 +146,11 @@ d</code></pre>
   <span class="st">&quot;c&quot;</span>, <span class="dv">3</span>,  <span class="dv">9</span>,
   <span class="st">&quot;d&quot;</span>, <span class="dv">4</span>, <span class="dv">16</span>)))</code></pre></div>
 <pre><code>wrapr::build_frame(
-   'names', 'x', 'y' |
-   'a'    , 1  , 1   |
-   'b'    , 2  , 4   |
-   'c'    , 3  , 9   |
-   'd'    , 4  , 16  )</code></pre>
+   &quot;names&quot;, &quot;x&quot;, &quot;y&quot; |
+   &quot;a&quot;    , 1  , 1   |
+   &quot;b&quot;    , 2  , 4   |
+   &quot;c&quot;    , 3  , 9   |
+   &quot;d&quot;    , 4  , 16  )</code></pre>
 <p><code>build_frame()</code> allows for simple substitutions of values. In contrast the method <code>qchar_frame()</code> builds <code>data.frame</code>s containing only <code>character</code> types and doesn’t require quoting (though it does allow it).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">qchar_frame</span>(
   col_<span class="dv">1</span>, col_<span class="dv">2</span>, col_<span class="dv">3</span> <span class="op">|</span>
@@ -171,7 +171,7 @@ d</code></pre>
 ## 2     b -0.4161468  4
 ## 3     c  5.0000000  9
 ## 4     d  4.0000000 16</code></pre>
-<p>Expressions not in parenthesis (such as “<code>3 + 2</code>”) will confuse the langauge transform <code>build_frame()</code> uses to detect cell boundaries.</p>
+<p>Expressions not in parenthesis (such as “<code>3 + 2</code>”) will confuse the language transform <code>build_frame()</code> uses to detect cell boundaries.</p>
 
 
 
