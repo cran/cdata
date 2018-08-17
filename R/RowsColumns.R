@@ -88,8 +88,19 @@ unpivot_to_blocks <- function(data,
                               columnsToTakeFrom,
                               ...,
                               nameForNewClassColumn = NULL) {
+  UseMethod("unpivot_to_blocks")
+}
+
+#' @export
+#' @rdname unpivot_to_blocks
+unpivot_to_blocks.default <- function(data,
+                                      nameForNewKeyColumn,
+                                      nameForNewValueColumn,
+                                      columnsToTakeFrom,
+                                      ...,
+                                      nameForNewClassColumn = NULL) {
   if(!is.data.frame(data)) {
-    stop("cdata::unpivot_to_blocks data must be a local data.frame")
+    stop("cdata::unpivot_to_blocks.default data must be a local data.frame")
   }
   wrapr::stop_if_dot_args(substitute(list(...)), "cdata::unpivot_to_blocks")
   cn <- colnames(data)
@@ -263,4 +274,5 @@ pivot_to_rowrecs <- function(data,
                     controlTable = cT,
                     columnsToCopy = colsToCopy)
 }
+
 
