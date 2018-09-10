@@ -4,7 +4,7 @@ The `cdata` package is a demonstration of the ["coordinatized data" theory](http
 
 ![](https://raw.githubusercontent.com/WinVector/cdata/master/tools/cdata.png)
 
-Briefly `cdata` supplies data transform operators that:
+Briefly: `cdata` supplies data transform operators that:
 
 -   Work on local data or with any `DBI` data source.
 -   Are powerful generalizations of the operators commonly called `pivot` and `un-pivot`.
@@ -48,7 +48,7 @@ tab <- blocks_to_rowrecs_q('d',
 qlook(my_db, tab)
 ```
 
-    ## table `mvtcq_89974872783737836228_0000000001` spark_connection spark_shell_connection DBIConnection 
+    ## table `mvtcq_36566294366600785200_0000000001` spark_connection spark_shell_connection DBIConnection 
     ##  nrow: 1 
     ## 'data.frame':    1 obs. of  2 variables:
     ##  $ AUC: num 0.6
