@@ -215,6 +215,11 @@ rowrecs_to_blocks.default <- function(wideTable,
   if(!is.null(cCheck)) {
     stop(paste("cdata::rowrecs_to_blocks", cCheck))
   }
+  bad_copy_cols <- setdiff(columnsToCopy, colnames(wideTable))
+  if(length(bad_copy_cols)>0) {
+    stop(paste0("cdata::rowrecs_to_blocks bad columnsToCopy: ",
+                paste(bad_copy_cols, collapse = ", ")))
+  }
   if(checkNames || checkKeys) {
     interiorCells <- as.vector(as.matrix(controlTable[,2:ncol(controlTable)]))
     interiorCells <- interiorCells[!is.na(interiorCells)]
@@ -386,6 +391,11 @@ blocks_to_rowrecs.default <- function(tallTable,
     keyColumns <- "cdata_key_column"
     clear_key_column <- TRUE
   }
+  bad_key_cols <- setdiff(keyColumns, colnames(tallTable))
+  if(length(bad_key_cols)>0) {
+    stop(paste0("cdata::blocks_to_rowrecs bad keyColumns: ",
+                paste(bad_key_cols, collapse = ", ")))
+  }
   cCheck <- checkControlTable(controlTable, strict)
   if(!is.null(cCheck)) {
     stop(paste("cdata::blocks_to_rowrecs", cCheck))
@@ -472,8 +482,10 @@ blocks_to_rowrecs.default <- function(tallTable,
       res[[destcol]][seq_len(n_res)] <- NA
       posns <- match(res$cdata_group_key_col,
                      tallTable$cdata_group_key_col[indxs])
+      lhs <- seq_len(n_res)
+      lhs <- lhs[!is.na(posns)]
       posns <- posns[!is.na(posns)]
-      res[[destcol]][posns] <- vals
+      res[[destcol]][lhs] <- vals[posns]
     }
   }
   res$cdata_group_key_col <- NULL

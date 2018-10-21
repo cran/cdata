@@ -1,4 +1,9 @@
 
+# cdata 1.0.3 2018/10/20
+
+ * Fix ragged gather bug.
+ * More argument checking.
+
 # cdata 1.0.2 2018/10/08
 
  * Change defaults.
