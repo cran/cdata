@@ -1,4 +1,10 @@
 
+# cdata 1.0.4 2019/01/04
+
+ * More vignettes.
+ * Improve doc cross-linking.
+ * Switch to new f_df signature.
+
 # cdata 1.0.3 2018/10/20
 
  * Fix ragged gather bug.
