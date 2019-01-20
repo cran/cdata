@@ -1,4 +1,10 @@
 
+# cdata 1.0.5 2019/01/20
+
+ * Unify S3 method signatures to allow generic programming over them.
+ * Generic record to record transform.
+ * Move more functions from DBI to rquery.
+
 # cdata 1.0.4 2019/01/04
 
  * More vignettes.
