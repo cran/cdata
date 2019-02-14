@@ -8,19 +8,19 @@
 \usage{
 blocks_to_rowrecs(tallTable, keyColumns, controlTable, ...,
   columnsToCopy = NULL, checkNames = TRUE, checkKeys = TRUE,
-  strict = FALSE, use_data_table = FALSE,
+  strict = FALSE, controlTableKeys = colnames(controlTable)[[1]],
   tmp_name_source = wrapr::mk_tmp_name_source("bltrr"),
   temporary = TRUE)
 
 \method{blocks_to_rowrecs}{default}(tallTable, keyColumns, controlTable,
   ..., columnsToCopy = NULL, checkNames = TRUE, checkKeys = TRUE,
-  strict = FALSE, use_data_table = FALSE,
+  strict = FALSE, controlTableKeys = colnames(controlTable)[[1]],
   tmp_name_source = wrapr::mk_tmp_name_source("btrd"),
   temporary = TRUE)
 
 \method{blocks_to_rowrecs}{relop}(tallTable, keyColumns, controlTable, ...,
   columnsToCopy = NULL, checkNames = TRUE, strict = FALSE,
-  use_data_table = FALSE,
+  controlTableKeys = colnames(controlTable)[[1]],
   tmp_name_source = wrapr::mk_tmp_name_source("bltrr"),
   temporary = TRUE)
 }
@@ -41,7 +41,7 @@ blocks_to_rowrecs(tallTable, keyColumns, controlTable, ...,
 
 \item{strict}{logical, if TRUE check control table name forms}
 
-\item{use_data_table}{logical if TRUE try to use data.table for the pivots.}
+\item{controlTableKeys}{character, which column names of the control table are considered to be keys.}
 
 \item{tmp_name_source}{a tempNameGenerator from cdata::mk_tmp_name_source()}
 

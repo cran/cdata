@@ -12,14 +12,14 @@
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2019-01-20" />
+<meta name="date" content="2019-02-14" />
 
 <title>General Data Transforms With cdata</title>
 
 
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
+<style type="text/css" data-origin="pandoc">
 div.sourceCode { overflow-x: auto; }
 table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
   margin: 0; padding: 0; vertical-align: baseline; border: none; }
@@ -55,7 +55,29 @@ code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
 code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+
 </style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
 
 
 
@@ -70,11 +92,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">General Data Transforms With cdata</h1>
 <h4 class="author"><em>John Mount, Nina Zumel</em></h4>
-<h4 class="date"><em>2019-01-20</em></h4>
+<h4 class="date"><em>2019-02-14</em></h4>
 
 
 
-<p>One of the design goals of the <a href="https://github.com/WinVector/cdata"><code>cdata</code></a> <a href="https://www.r-project.org"><code>R</code></a> package is that very powerful and arbitrary record transforms should be convenient and take only one or two steps. In fact it is the goal to take just about any record shape to any other in two steps: first convert to row-records, then re-block the data into arbitrary record shapes (please see <a href="https://winvector.github.io/cdata/articles/blocksrecs.html">here</a> and <a href="https://winvector.github.io/cdata/articles/design.html">here</a> for the concepts).</p>
+<p>One of the design goals of the <a href="https://github.com/WinVector/cdata"><code>cdata</code></a> <a href="https://www.r-project.org"><code>R</code></a> package is that data occurs in records, and records may be a pattern of cells in a groups of rows.</p>
+<p>The allows <code>cdata</code> to support very powerful and arbitrary record transforms in one or two steps. Using “row records” (that is records that are exactly one row) as an intermediate lets us take just about any record shape to just about any record shape: first convert to row-records, then re-block the data into arbitrary record shapes (please see <a href="https://winvector.github.io/cdata/articles/blocksrecs.html">here</a> and <a href="https://winvector.github.io/cdata/articles/design.html">here</a> for the concepts).</p>
 <p>But as with all general ideas, it is much easier to see what we mean by the above with a concrete example. Let’s consider the following artificial (but simple) example. Suppose we have the following data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)
 

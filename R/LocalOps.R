@@ -4,6 +4,9 @@
 # in-memory direct functionality
 
 
+# TODO: check for more name collision in columns we are producing
+
+
 #' @importFrom stats as.formula
 NULL
 
@@ -70,36 +73,6 @@ build_unpivot_control <- function(nameForNewKeyColumn,
 }
 
 
-# unpack control table into maps
-build_transform_maps <- function(controlTable) {
-  cCheck <- checkControlTable(controlTable, FALSE)
-  if(!is.null(cCheck)) {
-    stop(paste("cdata:::build_transform_maps", cCheck))
-  }
-  # use control table to get into a triple-form (only one data column, all others keys).
-  cells <- as.character(unlist(unlist(controlTable[, -1])))
-  cells_to_row_labels <- controlTable
-  for(i in 1:nrow(controlTable)) {
-    cells_to_row_labels[i, ] <- cells_to_row_labels[i, 1]
-  }
-  cells_to_row_labels <- as.character(unlist(cells_to_row_labels[, -1]))
-  names(cells_to_row_labels) <- cells
-  cells_to_col_labels <- controlTable
-  for(j in 2:ncol(controlTable)) {
-    cells_to_col_labels[, j] <- colnames(controlTable)[[j]]
-  }
-  cells_to_col_labels <- as.character(unlist(cells_to_col_labels[, -1]))
-  names(cells_to_col_labels) <- cells
-  rows_cols_to_cells <- cells
-  names(rows_cols_to_cells) <- paste(cells_to_row_labels, ",", cells_to_col_labels)
-  list(
-    cells = cells,
-    cells_to_row_labels = cells_to_row_labels,
-    cells_to_col_labels = cells_to_col_labels,
-    rows_cols_to_cells = rows_cols_to_cells
-  )
-}
-
 
 
 #' @export
@@ -110,8 +83,8 @@ rowrecs_to_blocks.default <- function(wideTable,
                                       checkNames = TRUE,
                                       checkKeys = FALSE,
                                       strict = FALSE,
+                                      controlTableKeys = colnames(controlTable)[[1]],
                                       columnsToCopy = NULL,
-                                      use_data_table = FALSE,
                                       tmp_name_source = wrapr::mk_tmp_name_source("rrtobd"),
                                       temporary = TRUE) {
   wrapr::stop_if_dot_args(substitute(list(...)), "cdata::rowrecs_to_blocks")
@@ -122,7 +95,7 @@ rowrecs_to_blocks.default <- function(wideTable,
     stop("cdata::rowrecs_to_blocks controlTable should be a data.frame")
   }
   rownames(wideTable) <- NULL
-  cCheck <- checkControlTable(controlTable, strict)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
   if(!is.null(cCheck)) {
     stop(paste("cdata::rowrecs_to_blocks", cCheck))
   }
@@ -131,8 +104,9 @@ rowrecs_to_blocks.default <- function(wideTable,
     stop(paste0("cdata::rowrecs_to_blocks bad columnsToCopy: ",
                 paste(bad_copy_cols, collapse = ", ")))
   }
+  controlTableValueColumns <- setdiff(colnames(controlTable), controlTableKeys)
   if(checkNames || checkKeys) {
-    interiorCells <- as.vector(as.matrix(controlTable[,2:ncol(controlTable)]))
+    interiorCells <- unlist(controlTable[, controlTableValueColumns], use.names = FALSE)
     interiorCells <- interiorCells[!is.na(interiorCells)]
     wideTableColnames <- colnames(wideTable)
     badCells <- setdiff(interiorCells, wideTableColnames)
@@ -147,59 +121,34 @@ rowrecs_to_blocks.default <- function(wideTable,
     }
   }
 
-  if( use_data_table &&
-      requireNamespace("data.table", quietly = TRUE) ) {
-    maps <- build_transform_maps(controlTable)
-
-    # from rowrec to one value per row form (triple-like)
-    d_thin_r <- data.table::melt.data.table(data.table::as.data.table(wideTable),
-                                            variable.name = "cdata_cell_label",
-                                            value.name = "cdata_cell_value",
-                                            id.vars = columnsToCopy,
-                                            measure.vars = maps$cells)
-    d_thin_r$cdata_row_label <- maps$cells_to_row_labels[d_thin_r$cdata_cell_label]
-    d_thin_r$cdata_col_label <- maps$cells_to_col_labels[d_thin_r$cdata_cell_label]
-
-    # cast to block form, note: if cdata_col_label isn't varying then don't need this step.
-    f <- paste0(paste(c(columnsToCopy, "cdata_row_label"), collapse = " + "), " ~ ", "cdata_col_label")
-    r <- data.table::dcast.data.table(d_thin_r, as.formula(f), value.var = "cdata_cell_value")
-    colnames(r)[which(colnames(r)=="cdata_row_label")] <- colnames(controlTable)[[1]]
-    rownames(r) <- NULL
-    return(as.data.frame(r))
-  }
-
-  if( use_data_table ) {
-    warning("cdata::rowrecs_to_blocks use_data_table==TRUE requires data.table package")
-  }
-
-  # fall back to local impl
-
   n_row_in <- nrow(wideTable)
   n_rep <- nrow(controlTable)
   n_row_res <- n_rep*n_row_in
   # build and start filling in result
   res <- data.frame(x = seq_len(n_row_in))
   res[['x']] <- NULL
-  for(ci in columnsToCopy) {
-    res[[ci]] <- wideTable[[ci]]
+  for(cn in columnsToCopy) {
+    res[[cn]] <- wideTable[[cn]]
   }
-  res[[colnames(controlTable)[[1]]]] <- NA_character_
-  for(ci in 2:ncol(controlTable)) {
-    cn <- colnames(controlTable)[[ci]]
-    res[[cn]] <- wideTable[[controlTable[2, ci, drop = TRUE]]]
+  for(cn in controlTableKeys) {
+    res[[cn]] <- NA_character_
+  }
+  for(cn in controlTableValueColumns) {
+    res[[cn]] <- wideTable[[controlTable[2, cn, drop = TRUE]]]
     # TODO: check this keeps class and works with dates
     res[[cn]][seq_len(n_row_in)] <- NA
   }
   # cross product with control table
   res <- res[sort(rep(seq_len(n_row_in), n_rep)), , drop = FALSE]
   rownames(res) <- NULL
-  res[[colnames(controlTable)[[1]]]] <- rep(controlTable[[1]], n_row_in)
+  for(cn in controlTableKeys) {
+    res[[cn]] <- rep(controlTable[[cn]], n_row_in)
+  }
   # fill in values
-  for(ci in 2:ncol(controlTable)) {
-    cn <- colnames(controlTable)[[ci]]
+  for(cn in controlTableValueColumns) {
     for(i in seq_len(n_rep)) {
       indxs <- i + n_rep*(0:(n_row_in-1))
-      col <- controlTable[i, ci, drop = TRUE]
+      col <- controlTable[i, cn, drop = TRUE]
       res[[cn]][indxs] <- wideTable[[col]]
     }
   }
@@ -218,7 +167,7 @@ blocks_to_rowrecs.default <- function(tallTable,
                                       checkNames = TRUE,
                                       checkKeys = TRUE,
                                       strict = FALSE,
-                                      use_data_table = FALSE,
+                                      controlTableKeys = colnames(controlTable)[[1]],
                                       tmp_name_source = wrapr::mk_tmp_name_source("btrd"),
                                       temporary = TRUE) {
   wrapr::stop_if_dot_args(substitute(list(...)), "cdata::blocks_to_rowrecs")
@@ -241,10 +190,11 @@ blocks_to_rowrecs.default <- function(tallTable,
     stop(paste0("cdata::blocks_to_rowrecs bad keyColumns: ",
                 paste(bad_key_cols, collapse = ", ")))
   }
-  cCheck <- checkControlTable(controlTable, strict)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
   if(!is.null(cCheck)) {
     stop(paste("cdata::blocks_to_rowrecs", cCheck))
   }
+  controlTableValueColumns <- setdiff(colnames(controlTable), controlTableKeys)
   if(checkNames || checkKeys) {
     tallTableColnames <- colnames(tallTable)
     badCells <- setdiff(colnames(controlTable), tallTableColnames)
@@ -253,13 +203,9 @@ blocks_to_rowrecs.default <- function(tallTable,
                  paste(badCells, collapse = ', ')))
     }
     if(checkKeys) {
-      # keys plot colnames(controlTable)[[1]] should uniquely identify rows
-      if(!checkColsFormUniqueKeys(tallTable, c(keyColumns, colnames(controlTable)[[1]]))) {
-        stop("cdata::blocks_to_rowrecs: keyColumns plus first column of control table do not uniquely key rows")
-      }
-      # only values expected in controlTable[[1]] should be in tallTable[[colnames(controlTable)[[1]]]]
-      bkeys <- controlTable[[1]]
-      bseen <- unique(tallTable[[colnames(controlTable)[[1]]]])
+      # only values expected as controlTable keys should be in tallTable[[controlTableKeys]]
+      bkeys <- unique(unlist(controlTable[, controlTableKeys], use.names = FALSE))
+      bseen <- unique(unlist(tallTable[, controlTableKeys], use.names = FALSE))
       bnovel <- setdiff(bseen, bkeys)
       if(length(bnovel)>0) {
         stop(paste("cdata::blocks_to_rowrecs: table values that are not block keys:",
@@ -267,36 +213,6 @@ blocks_to_rowrecs.default <- function(tallTable,
       }
     }
   }
-
-  if( use_data_table &&
-      requireNamespace("data.table", quietly = TRUE) ) {
-    maps <- build_transform_maps(controlTable)
-
-    # from block form to one value per row form (triple-like)
-    d_thin_b <- data.table::melt.data.table(data.table::as.data.table(tallTable),
-                                            variable.name = "cdata_col_label",
-                                            value.name = "cdata_cell_value",
-                                            id.vars = c(keyColumns, colnames(controlTable)[[1]]),
-                                            measure.vars = colnames(controlTable)[-1])
-    d_thin_b$cdata_row_label <- d_thin_b[[colnames(controlTable)[[1]]]]
-    d_thin_b[[colnames(controlTable)[[1]]]] <- NULL
-    d_thin_b$cdata_cell_label <- maps$rows_cols_to_cells[paste(d_thin_b$cdata_row_label, ",", d_thin_b$cdata_col_label)]
-
-    # cast to rowrec form
-    f <- paste0(paste(keyColumns, collapse = " + "), " ~ ", "cdata_cell_label")
-    r <- data.table::dcast.data.table(d_thin_b, as.formula(f), value.var = "cdata_cell_value")
-    if(clear_key_column) {
-      r$cdata_key_column <- NULL
-    }
-    rownames(r) <- NULL
-    return(as.data.frame(r))
-  }
-
-  if( use_data_table ) {
-    warning("cdata::blocks_to_rowrecs use_data_table==TRUE requires data.table package")
-  }
-
-  # fall back to local impl
 
   # make simple grouping keys
   tallTable$cdata_group_key_col <- 1
@@ -314,14 +230,20 @@ blocks_to_rowrecs.default <- function(tallTable,
   rownames(res) <- NULL
   n_res <- nrow(res)
   # fill in values
-  meas_col <- colnames(controlTable)[[1]]
+  tallTable$composite_meas_col <- do.call(paste,
+                                          c(
+                                            as.list(tallTable[, controlTableKeys, drop = FALSE]),
+                                            list(sep = " CDATA_K_SEP ")))
+  controlTable$composite_meas_col <- do.call(paste,
+                                          c(
+                                            as.list(controlTable[, controlTableKeys, drop = FALSE]),
+                                            list(sep = " CDATA_K_SEP ")))
   n_rep <- nrow(controlTable)
-  for(ci in 2:ncol(controlTable)) {
-    cn <- colnames(controlTable)[[ci]]
+  for(cn in controlTableValueColumns) {
     for(i in seq_len(n_rep)) {
-      srccol <- controlTable[i, 1, drop = TRUE]
+      srccol <- controlTable$composite_meas_col[[i]]
       destcol <- controlTable[[cn]][i]
-      indxs <- which(tallTable[[meas_col]] == srccol)
+      indxs <- which(tallTable$composite_meas_col == srccol)
       vals <- tallTable[[cn]][indxs]
       res[[destcol]] <- vals[[1]]
       res[[destcol]][seq_len(n_res)] <- NA

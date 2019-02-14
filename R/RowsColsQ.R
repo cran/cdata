@@ -9,31 +9,53 @@
 
 
 # confirm control table structure
-checkControlTable <- function(controlTable, strict) {
+checkControlTable <- function(controlTable, controlTableKeys, strict) {
   if(!is.data.frame(controlTable)) {
     return("control table must be a data.frame")
+  }
+  if(length(colnames(controlTable)) != length(unique(colnames(controlTable)))) {
+    return("control table columns must be unique")
+  }
+  if(any(is.na(colnames(controlTable)))) {
+    return("control table column names must not be NA")
+  }
+  if( (length(controlTableKeys)<1) || (!is.character(controlTableKeys)) ) {
+    return("controlTableKeys must be non-empty character")
   }
   if(nrow(controlTable)<1) {
     return("control table must have at least 1 row")
   }
-  if(ncol(controlTable)<2) {
-    return("control table must have at least 2 columns")
+  if(ncol(controlTable)<=length(controlTableKeys)) {
+    return("control table must have more columns than controlTableKeys")
+  }
+  if(length(setdiff(controlTableKeys, colnames(controlTable)))>0) {
+    return("all controlTableKeys must be controlTable column names")
   }
   classes <- vapply(controlTable, class, character(1))
   if(!all(classes=='character')) {
     return("all control table columns must be character")
   }
+  if(!checkColsFormUniqueKeys(controlTable, controlTableKeys)) {
+    return("controlTable rows must be uniquely keyed by controlTableKeys key columns")
+  }
+  if(any(is.na(controlTable[, controlTableKeys, drop = FALSE]))) {
+    return("control table key must not be NA")
+  }
   toCheck <- list(
     "column names" = colnames(controlTable),
-    "group ids" = controlTable[, 1, drop=TRUE]
+    "keys" = unlist(controlTable[, controlTableKeys], use.names = FALSE),
+    "values" = unlist(controlTable, use.names = FALSE) # overlaps, but keys will catch first
   )
   for(ci in names(toCheck)) {
     vals <- toCheck[[ci]]
-    if(any(is.na(vals))) {
-      return(paste("all control table", ci, "must not be NA"))
+    if(length(vals)<=0) {
+      return(paste("control table", ci, "must not be empty"))
     }
-    if(length(unique(vals))!=length(vals)) {
-      return(paste("all control table", ci, "must be distinct"))
+    if(!is.character(vals)) {
+      return(paste("all control table", ci, "must be character"))
+    }
+    if(any(nchar(vals)<=0)) {
+      return(paste("all control table", ci, "must not be empty strings"))
     }
     if(strict) {
       if(length(grep(".", vals, fixed=TRUE))>0) {
@@ -173,6 +195,7 @@ qlook <- function(my_db, tableName,
 #' @param columnsToCopy character array of column names to copy
 #' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param strict logical, if TRUE check control table name forms
+#' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
@@ -212,6 +235,7 @@ rowrecs_to_blocks_q <- function(wideTable,
                                 columnsToCopy = NULL,
                                 tempNameGenerator = mk_tmp_name_source('mvtrq'),
                                 strict = FALSE,
+                                controlTableKeys = colnames(controlTable)[[1]],
                                 checkNames = TRUE,
                                 showQuery = FALSE,
                                 defaultValue = NULL,
@@ -227,12 +251,13 @@ rowrecs_to_blocks_q <- function(wideTable,
     stop("rowrecs_to_blocks_q: wideTable must be the name of a remote table")
   }
   controlTable <- as.data.frame(controlTable)
-  cCheck <- checkControlTable(controlTable, strict)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
   if(!is.null(cCheck)) {
     stop(paste("cdata::rowrecs_to_blocks_q", cCheck))
   }
+  controlTableValueColumns <- setdiff(colnames(controlTable), controlTableKeys)
   if(checkNames) {
-    interiorCells <- as.vector(as.matrix(controlTable[,2:ncol(controlTable)]))
+    interiorCells <- unlist(controlTable[, controlTableValueColumns], use.names = FALSE)
     interiorCells <- interiorCells[!is.na(interiorCells)]
     wideTableColnames <- cols(my_db, wideTable)
     badCells <- setdiff(interiorCells, wideTableColnames)
@@ -260,18 +285,25 @@ rowrecs_to_blocks_q <- function(wideTable,
                                                   collapse = ' '))
     }
   }
-  casestmts <- lapply(2:ncol(controlTable),
-                      function(j) {
+  control_key_indices <- match(controlTableKeys, colnames(controlTable))
+  casestmts <- lapply(controlTableValueColumns,
+                      function(cj) {
                         whens <- lapply(seq_len(nrow(controlTable)),
                                         function(i) {
-                                          cij <- controlTable[i,j,drop=TRUE]
+                                          cij <- controlTable[i,cj,drop=TRUE]
                                           if(is.null(cij) || is.na(cij)) {
                                             return(NULL)
                                           }
-                                          paste0(' WHEN b.',
-                                                 rquery::quote_identifier(my_db, colnames(controlTable)[1]),
-                                                 ' = ',
-                                                 rquery::quote_string(my_db, controlTable[i,1,drop=TRUE]),
+                                          match_stmts <- vapply(
+                                            control_key_indices,
+                                            function(j2) {
+                                              paste0('b.',
+                                                     rquery::quote_identifier(my_db, colnames(controlTable)[j2]),
+                                                     ' = ',
+                                                     rquery::quote_string(my_db, controlTable[i,j2,drop=TRUE]))
+                                            }, character(1))
+                                          paste0(' WHEN ',
+                                                 paste(match_stmts, collapse = " AND "),
                                                  ' THEN a.',
                                                  rquery::quote_identifier(my_db, cij))
                                         })
@@ -285,7 +317,7 @@ rowrecs_to_blocks_q <- function(wideTable,
                                            ' ELSE ',
                                            missingCaseTerm,
                                            ' END AS ',
-                                           rquery::quote_identifier(my_db, colnames(controlTable)[j]))
+                                           rquery::quote_identifier(my_db, cj))
                       })
   casestmts <- as.character(Filter(function(x) { !is.null(x) },
                                    casestmts))
@@ -293,10 +325,10 @@ rowrecs_to_blocks_q <- function(wideTable,
   if(length(columnsToCopy)>0) {
     copystmts <- paste0('a.', rquery::quote_identifier(my_db, columnsToCopy))
   }
-  groupstmt <- paste0('b.', rquery::quote_identifier(my_db, colnames(controlTable)[1]))
+  groupstmts <- paste0('b.', rquery::quote_identifier(my_db, controlTableKeys))
   # deliberate cross join
   qs <-  paste0(" SELECT ",
-                paste(c(copystmts, groupstmt, casestmts), collapse = ', '),
+                paste(c(copystmts, groupstmts, casestmts), collapse = ', '),
                 ' FROM ',
                 rquery::quote_identifier(my_db, wideTable),
                 ' a CROSS JOIN ',
@@ -421,6 +453,7 @@ build_pivot_control_q <- function(tableName,
 #' @param columnsToCopy character list of column names to copy
 #' @param tempNameGenerator a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param strict logical, if TRUE check control table name forms
+#' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param checkNames logical, if TRUE check names
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
@@ -464,6 +497,7 @@ blocks_to_rowrecs_q <- function(tallTable,
                                 columnsToCopy = NULL,
                                 tempNameGenerator = mk_tmp_name_source('mvtcq'),
                                 strict = FALSE,
+                                controlTableKeys = colnames(controlTable)[[1]],
                                 checkNames = TRUE,
                                 showQuery = FALSE,
                                 defaultValue = NULL,
@@ -485,10 +519,11 @@ blocks_to_rowrecs_q <- function(tallTable,
     stop("blocks_to_rowrecs_q: tallTable must be the name of a remote table")
   }
   controlTable <- as.data.frame(controlTable)
-  cCheck <- checkControlTable(controlTable, strict)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
   if(!is.null(cCheck)) {
     stop(paste("cdata::blocks_to_rowrecs_q", cCheck))
   }
+  controlTableValueColumns <- setdiff(colnames(controlTable), controlTableKeys)
   if(checkNames) {
     tallTableColnames <- cols(my_db, tallTable)
     badCells <- setdiff(colnames(controlTable), tallTableColnames)
@@ -516,26 +551,32 @@ blocks_to_rowrecs_q <- function(tallTable,
                                                   collapse = ' '))
     }
   }
+  control_key_indices <- match(controlTableKeys, colnames(controlTable))
   collectstmts <- vector(mode = 'list',
                          length = nrow(controlTable) * (ncol(controlTable)-1))
   collectN <- 1
   saw <- list()
   for(i in seq_len(nrow(controlTable))) {
-    for(j in 2:ncol(controlTable)) {
-      cij <- controlTable[i,j,drop=TRUE]
+    for(cj in controlTableValueColumns) {
+      cij <- controlTable[i,cj,drop=TRUE]
       if((!is.null(cij))&&(!is.na(cij))) {
         if(dropDups && (cij %in% names(saw))) {
           cij <- NA
         }
       }
       if((!is.null(cij))&&(!is.na(cij))) {
+        match_stmts <- vapply(
+          control_key_indices,
+          function(j2) {
+            paste0('a.',
+                   rquery::quote_identifier(my_db, colnames(controlTable)[j2]),
+                   ' = ',
+                   rquery::quote_string(my_db, controlTable[i,j2,drop=TRUE]))
+          }, character(1))
         collectstmts[[collectN]] <- paste0("MAX( CASE WHEN ", # pseudo aggregator
-                                           "a.",
-                                           rquery::quote_identifier(my_db, colnames(controlTable)[[1]]),
-                                           " = ",
-                                           rquery::quote_string(my_db, controlTable[i,1,drop=TRUE]),
+                                           paste(match_stmts, collapse = " AND "),
                                            " THEN a.",
-                                           rquery::quote_identifier(my_db, colnames(controlTable)[[j]]),
+                                           rquery::quote_identifier(my_db, cj),
                                            " ELSE ",
                                            missingCaseTerm,
                                            " END ) ",

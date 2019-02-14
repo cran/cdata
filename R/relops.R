@@ -165,6 +165,7 @@ unpivot_to_blocks.relop <- function(data,
                         columnsToCopy = colsToCopy,
                         tempNameGenerator = tmp_name_source,
                         strict = FALSE,
+                        controlTableKeys = colnames(cT)[[1]],
                         checkNames = FALSE,
                         showQuery = FALSE,
                         defaultValue = NULL,
@@ -242,7 +243,7 @@ blocks_to_rowrecs.relop <- function(tallTable,
                                     columnsToCopy = NULL,
                                     checkNames = TRUE,
                                     strict = FALSE,
-                                    use_data_table = FALSE,
+                                    controlTableKeys = colnames(controlTable)[[1]],
                                     tmp_name_source = wrapr::mk_tmp_name_source("bltrr"),
                                     temporary = TRUE) {
   wrapr::stop_if_dot_args(substitute(list(...)), "cdata::blocks_to_rowrecs")
@@ -257,14 +258,19 @@ blocks_to_rowrecs.relop <- function(tallTable,
   force(controlTable)
   force(columnsToCopy)
   force(checkNames)
-  force(use_data_table)
   force(strict)
+  force(controlTableKeys)
   force(tmp_name_source)
   force(temporary)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
+  if(!is.null(cCheck)) {
+    stop(paste("cdata::blocks_to_rowrecs.relop", cCheck))
+  }
   incoming_table_name = tmp_name_source()
   outgoing_table_name = tmp_name_source()
+  controlTableValueColumns <- setdiff(colnames(controlTable), controlTableKeys)
   columns_produced <- c(keyColumns,
-                        as.character(unlist(controlTable[, -1, drop=FALSE])))
+                        as.character(unlist(controlTable[, controlTableValueColumns])))
   f_db <- function(db,
                    incoming_table_name,
                    outgoing_table_name) {
@@ -275,6 +281,7 @@ blocks_to_rowrecs.relop <- function(tallTable,
                         columnsToCopy = columnsToCopy,
                         tempNameGenerator = tmp_name_source,
                         strict = strict,
+                        controlTableKeys = controlTableKeys,
                         checkNames = checkNames,
                         showQuery = FALSE,
                         defaultValue = NULL,
@@ -289,7 +296,7 @@ blocks_to_rowrecs.relop <- function(tallTable,
                               columnsToCopy = columnsToCopy,
                               checkNames = checkNames,
                               strict = strict,
-                              use_data_table = use_data_table)
+                              controlTableKeys = controlTableKeys)
   }
   nd <- rquery::non_sql_node(tallTable,
                              f_db = f_db,
@@ -348,8 +355,8 @@ rowrecs_to_blocks.relop <- function(wideTable,
                                     checkNames = TRUE,
                                     checkKeys = FALSE,
                                     strict = FALSE,
+                                    controlTableKeys = colnames(controlTable)[[1]],
                                     columnsToCopy = NULL,
-                                    use_data_table = FALSE,
                                     tmp_name_source = wrapr::mk_tmp_name_source("rrtbl"),
                                     temporary = TRUE) {
   wrapr::stop_if_dot_args(substitute(list(...)), "cdata::rowrecs_to_blocks")
@@ -363,10 +370,14 @@ rowrecs_to_blocks.relop <- function(wideTable,
   force(controlTable)
   force(columnsToCopy)
   force(checkNames)
-  force(use_data_table)
   force(strict)
+  force(controlTableKeys)
   force(tmp_name_source)
   force(temporary)
+  cCheck <- checkControlTable(controlTable, controlTableKeys, strict)
+  if(!is.null(cCheck)) {
+    stop(paste("cdata::rowrecs_to_blocks.relop", cCheck))
+  }
   incoming_table_name = tmp_name_source()
   outgoing_table_name = tmp_name_source()
   columns_produced <- c(columnsToCopy, colnames(controlTable))
@@ -379,6 +390,7 @@ rowrecs_to_blocks.relop <- function(wideTable,
                         columnsToCopy = columnsToCopy,
                         tempNameGenerator = tmp_name_source,
                         strict = strict,
+                        controlTableKeys = controlTableKeys,
                         checkNames = checkNames,
                         showQuery = FALSE,
                         defaultValue = NULL,
@@ -390,8 +402,8 @@ rowrecs_to_blocks.relop <- function(wideTable,
                               controlTable = controlTable,
                               checkNames = checkNames,
                               strict = strict,
-                              columnsToCopy = columnsToCopy,
-                              use_data_table = use_data_table)
+                              controlTableKeys = controlTableKeys,
+                              columnsToCopy = columnsToCopy)
   }
   nd <- rquery::non_sql_node(wideTable,
                              f_db = f_db,

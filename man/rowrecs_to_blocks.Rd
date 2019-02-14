@@ -7,20 +7,20 @@
 \title{Map a set of columns to rows (takes a \code{data.frame}).}
 \usage{
 rowrecs_to_blocks(wideTable, controlTable, ..., checkNames = TRUE,
-  checkKeys = FALSE, strict = FALSE, columnsToCopy = NULL,
-  use_data_table = FALSE,
+  checkKeys = FALSE, strict = FALSE,
+  controlTableKeys = colnames(controlTable)[[1]], columnsToCopy = NULL,
   tmp_name_source = wrapr::mk_tmp_name_source("rrtbl"),
   temporary = TRUE)
 
 \method{rowrecs_to_blocks}{default}(wideTable, controlTable, ...,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
-  columnsToCopy = NULL, use_data_table = FALSE,
+  controlTableKeys = colnames(controlTable)[[1]], columnsToCopy = NULL,
   tmp_name_source = wrapr::mk_tmp_name_source("rrtobd"),
   temporary = TRUE)
 
 \method{rowrecs_to_blocks}{relop}(wideTable, controlTable, ...,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
-  columnsToCopy = NULL, use_data_table = FALSE,
+  controlTableKeys = colnames(controlTable)[[1]], columnsToCopy = NULL,
   tmp_name_source = wrapr::mk_tmp_name_source("rrtbl"),
   temporary = TRUE)
 }
@@ -37,9 +37,9 @@ rowrecs_to_blocks(wideTable, controlTable, ..., checkNames = TRUE,
 
 \item{strict}{logical, if TRUE check control table name forms.}
 
-\item{columnsToCopy}{character array of column names to copy.}
+\item{controlTableKeys}{character, which column names of the control table are considered to be keys.}
 
-\item{use_data_table}{logical if TRUE try to use data.table for the un-pivots.}
+\item{columnsToCopy}{character array of column names to copy.}
 
 \item{tmp_name_source}{a tempNameGenerator from cdata::mk_tmp_name_source()}
 

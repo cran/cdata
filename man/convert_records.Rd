@@ -6,7 +6,9 @@
 \usage{
 convert_records(table, incoming_shape, outgoing_shape, ...,
   keyColumns = NULL, columnsToCopy_in = NULL, checkNames = TRUE,
-  checkKeys = FALSE, strict = FALSE, use_data_table = FALSE,
+  checkKeys = FALSE, strict = FALSE,
+  incoming_controlTableKeys = colnames(incoming_shape)[[1]],
+  outgoing_controlTableKeys = colnames(outgoing_shape)[[1]],
   tmp_name_source = wrapr::mk_tmp_name_source("crec"),
   temporary = TRUE)
 }
@@ -29,7 +31,9 @@ convert_records(table, incoming_shape, outgoing_shape, ...,
 
 \item{strict}{logical, if TRUE check control table name forms.}
 
-\item{use_data_table}{logical if TRUE try to use data.table for the un-pivots.}
+\item{incoming_controlTableKeys}{character, which column names of the incoming control table are considered to be keys.}
+
+\item{outgoing_controlTableKeys}{character, which column names of the outgoing control table are considered to be keys.}
 
 \item{tmp_name_source}{a tempNameGenerator from cdata::mk_tmp_name_source()}
 
