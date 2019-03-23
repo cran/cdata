@@ -1,4 +1,10 @@
 
+# cdata 1.0.7 2019/03/23
+
+ * Move to wrapr tests.
+ * Better error messages.
+ * Better handling of NA in row-dup check.
+ 
 # cdata 1.0.6 2019/02/14
 
  * More generality in control table keys.
