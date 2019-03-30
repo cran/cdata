@@ -31,11 +31,11 @@ knitr::kable(expect)
 
 ## ------------------------------------------------------------------------
 control_table <- wrapr::qchar_frame(
-  Part,  Measure, Value          |
-  Sepal, Length,  "Sepal.Length" |
-  Sepal, Width,   "Sepal.Width"  |
-  Petal, Length,  "Petal.Length" |
-  Petal, Width,   "Petal.Width"  )
+  "Part",  "Measure", "Value"         |
+  "Sepal", "Length" ,  "Sepal.Length" |
+  "Sepal", "Width"  ,  "Sepal.Width"  |
+  "Petal", "Length" ,  "Petal.Length" |
+  "Petal", "Width"  ,  "Petal.Width"  )
 
 ## ------------------------------------------------------------------------
 res <- rowrecs_to_blocks(

@@ -14,9 +14,9 @@ head(iris, n=1)
 
 ## ------------------------------------------------------------------------
 (controlTable <- wrapr::qchar_frame(
-  flower_part, Length      , Width       |
-  Petal      , Petal.Length, Petal.Width |
-  Sepal      , Sepal.Length, Sepal.Width ))
+  "flower_part", "Length"      , "Width"     |
+  "Petal"      , Petal.Length  , Petal.Width |
+  "Sepal"      , Sepal.Length  , Sepal.Width ))
 
 columnsToCopy <- "Species"
 

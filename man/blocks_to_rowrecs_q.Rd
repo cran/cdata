@@ -8,8 +8,8 @@ blocks_to_rowrecs_q(tallTable, keyColumns, controlTable, my_db, ...,
   columnsToCopy = NULL,
   tempNameGenerator = mk_tmp_name_source("mvtcq"), strict = FALSE,
   controlTableKeys = colnames(controlTable)[[1]], checkNames = TRUE,
-  showQuery = FALSE, defaultValue = NULL, dropDups = FALSE,
-  temporary = FALSE, resultName = NULL)
+  checkKeys = FALSE, showQuery = FALSE, defaultValue = NULL,
+  dropDups = FALSE, temporary = FALSE, resultName = NULL)
 }
 \arguments{
 \item{tallTable}{name of table containing data to be mapped (db/Spark data)}
@@ -31,6 +31,8 @@ blocks_to_rowrecs_q(tallTable, keyColumns, controlTable, my_db, ...,
 \item{controlTableKeys}{character, which column names of the control table are considered to be keys.}
 
 \item{checkNames}{logical, if TRUE check names}
+
+\item{checkKeys}{logical, if TRUE check keying of tallTable}
 
 \item{showQuery}{if TRUE print query}
 
@@ -100,3 +102,4 @@ if (requireNamespace("DBI", quietly = TRUE) &&
 \seealso{
 \code{\link{build_pivot_control_q}}, \code{\link{blocks_to_rowrecs}}
 }
+\keyword{internal}

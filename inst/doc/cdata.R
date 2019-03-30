@@ -34,6 +34,3 @@ DBI::dbDisconnect(my_db)
 ## ---- eval=FALSE---------------------------------------------------------
 #  install.packages("cdata")
 
-## ---- eval=FALSE---------------------------------------------------------
-#  devtools::install_github("WinVector/cdata")
-

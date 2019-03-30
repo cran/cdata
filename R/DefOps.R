@@ -189,7 +189,7 @@ blocks_to_rowrecs <- function(tallTable,
 #' Move values from columns to rows (anti-pivot, or "shred").
 #'
 #' This is a convenience notation for \code{rowrecs_to_blocks}.
-#' For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
+#' For a tutorial please try \url{https://winvector.github.io/cdata/articles/blocksrecs.html}.
 #'
 #'
 #' @param data data.frame to work with.
@@ -233,3 +233,6 @@ unpivot_to_blocks <- function(data,
   UseMethod("unpivot_to_blocks")
 }
 
+#' @rdname unpivot_to_blocks
+#' @export
+pivot_to_blocks <- unpivot_to_blocks

@@ -20,6 +20,16 @@ A quick example: plot iris petal and sepal dimensions in a faceted graph.
 ``` r
 iris <- data.frame(iris)
 
+# show the data
+head(iris)
+ #    Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+ #  1          5.1         3.5          1.4         0.2  setosa
+ #  2          4.9         3.0          1.4         0.2  setosa
+ #  3          4.7         3.2          1.3         0.2  setosa
+ #  4          4.6         3.1          1.5         0.2  setosa
+ #  5          5.0         3.6          1.4         0.2  setosa
+ #  6          5.4         3.9          1.7         0.4  setosa
+
 library("ggplot2")
 library("cdata")
 
@@ -28,17 +38,28 @@ library("cdata")
 # and "value columns" Length and Width
 #
 controlTable <- wrapr::qchar_frame(
-   flower_part, Length      , Width       |
-   Petal    , Petal.Length, Petal.Width |
-   Sepal    , Sepal.Length, Sepal.Width )
+  "flower_part", "Length"     , "Width"     |
+    "Petal"    , Petal.Length , Petal.Width |
+    "Sepal"    , Sepal.Length , Sepal.Width )
+transform <- rowrecs_to_blocks_spec(
+  controlTable,
+  recordKeys = "Species",
+  checkKeys = FALSE)
 
 # do the unpivot to convert the row records to block records
-iris_aug <- rowrecs_to_blocks(
-  iris,
-  controlTable,
-  columnsToCopy = c("Species"))
+iris_aug <- iris %.>% transform
 
+# show the tranformed data
+head(iris_aug)
+ #    Species flower_part Length Width
+ #  1  setosa       Petal    1.4   0.2
+ #  2  setosa       Sepal    5.1   3.5
+ #  3  setosa       Petal    1.4   0.2
+ #  4  setosa       Sepal    4.9   3.0
+ #  5  setosa       Petal    1.3   0.2
+ #  6  setosa       Sepal    4.7   3.2
 
+# plot the graph
 ggplot(iris_aug, aes(x=Length, y=Width)) +
   geom_point(aes(color=Species, shape=Species)) + 
   facet_wrap(~flower_part, labeller = label_both, scale = "free") +
@@ -46,6 +67,50 @@ ggplot(iris_aug, aes(x=Length, y=Width)) +
 ```
 
 ![](tools/README-ex0-1.png)
+
+``` r
+
+# show the transform
+print(transform)
+ #  {
+ #   row_record <- wrapr::qchar_frame(
+ #     "Species"  , "Petal.Length", "Sepal.Length", "Petal.Width", "Sepal.Width" |
+ #       .        , Petal.Length  , Sepal.Length  , Petal.Width  , Sepal.Width   )
+ #   row_keys <- c('Species')
+ #  
+ #   # becomes
+ #  
+ #   block_record <- wrapr::qchar_frame(
+ #     "Species"  , "flower_part", "Length"    , "Width"     |
+ #       .        , "Petal"      , Petal.Length, Petal.Width |
+ #       .        , "Sepal"      , Sepal.Length, Sepal.Width )
+ #   block_keys <- c('Species', 'flower_part')
+ #  
+ #   # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE)
+ #  }
+
+# show the representation of the transform
+unclass(transform)
+ #  $controlTable
+ #    flower_part       Length       Width
+ #  1       Petal Petal.Length Petal.Width
+ #  2       Sepal Sepal.Length Sepal.Width
+ #  
+ #  $recordKeys
+ #  [1] "Species"
+ #  
+ #  $controlTableKeys
+ #  [1] "flower_part"
+ #  
+ #  $checkNames
+ #  [1] TRUE
+ #  
+ #  $checkKeys
+ #  [1] FALSE
+ #  
+ #  $strict
+ #  [1] FALSE
+```
 
 More details on the above example can be found [here](http://www.win-vector.com/blog/2018/10/faceted-graphs-with-cdata-and-ggplot2/). A tutorial on how to design a `controlTable` can be found [here](https://winvector.github.io/cdata/articles/design.html).
 And some discussion of the nature of records in `cdata` can be found [here](https://winvector.github.io/cdata/articles/blocksrecs.html).
@@ -69,25 +134,18 @@ category_variable <- "Species"
 # and pair_key as the key column
 controlTable <- data.frame(expand.grid(meas_vars, meas_vars, 
                                        stringsAsFactors = FALSE))
+# one copy of columns is coordinate names second copy is values
+controlTable <- cbind(controlTable, controlTable)
 # name the value columns value1 and value2
-colnames(controlTable) <- qc(value1, value2)
-# insert first, or key column
-controlTable <- cbind(
-  data.frame(pair_key = paste(controlTable[[1]], controlTable[[2]]),
-             stringsAsFactors = FALSE),
-  controlTable)
-
+colnames(controlTable) <- qc(v1, v2, value1, value2)
+transform <- rowrecs_to_blocks_spec(
+  controlTable,
+  recordKeys = "Species",
+  controlTableKeys = qc(v1, v2),
+  checkKeys = FALSE)
 
 # do the unpivot to convert the row records to multiple block records
-iris_aug <- rowrecs_to_blocks(
-  iris,
-  controlTable,
-  columnsToCopy = category_variable)
-
-# unpack the key column into two variable keys for the facet_grid
-splt <- strsplit(iris_aug$pair_key, split = " ", fixed = TRUE)
-iris_aug$v1 <- vapply(splt, function(si) si[[1]], character(1))
-iris_aug$v2 <- vapply(splt, function(si) si[[2]], character(1))
+iris_aug <- iris %.>% transform
 
 
 ggplot(iris_aug, aes(x=value1, y=value2)) +
@@ -100,6 +158,42 @@ ggplot(iris_aug, aes(x=value1, y=value2)) +
 ```
 
 ![](tools/README-ex0_1-1.png)
+
+``` r
+
+# show transform
+print(transform)
+ #  {
+ #   row_record <- wrapr::qchar_frame(
+ #     "Species"  , "Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width" |
+ #       .        , Sepal.Length  , Sepal.Width  , Petal.Length  , Petal.Width   )
+ #   row_keys <- c('Species')
+ #  
+ #   # becomes
+ #  
+ #   block_record <- wrapr::qchar_frame(
+ #     "Species"  , "v1"          , "v2"          , "value1"    , "value2"     |
+ #       .        , "Sepal.Length", "Sepal.Length", Sepal.Length, Sepal.Length |
+ #       .        , "Sepal.Width" , "Sepal.Length", Sepal.Width , Sepal.Length |
+ #       .        , "Petal.Length", "Sepal.Length", Petal.Length, Sepal.Length |
+ #       .        , "Petal.Width" , "Sepal.Length", Petal.Width , Sepal.Length |
+ #       .        , "Sepal.Length", "Sepal.Width" , Sepal.Length, Sepal.Width  |
+ #       .        , "Sepal.Width" , "Sepal.Width" , Sepal.Width , Sepal.Width  |
+ #       .        , "Petal.Length", "Sepal.Width" , Petal.Length, Sepal.Width  |
+ #       .        , "Petal.Width" , "Sepal.Width" , Petal.Width , Sepal.Width  |
+ #       .        , "Sepal.Length", "Petal.Length", Sepal.Length, Petal.Length |
+ #       .        , "Sepal.Width" , "Petal.Length", Sepal.Width , Petal.Length |
+ #       .        , "Petal.Length", "Petal.Length", Petal.Length, Petal.Length |
+ #       .        , "Petal.Width" , "Petal.Length", Petal.Width , Petal.Length |
+ #       .        , "Sepal.Length", "Petal.Width" , Sepal.Length, Petal.Width  |
+ #       .        , "Sepal.Width" , "Petal.Width" , Sepal.Width , Petal.Width  |
+ #       .        , "Petal.Length", "Petal.Width" , Petal.Length, Petal.Width  |
+ #       .        , "Petal.Width" , "Petal.Width" , Petal.Width , Petal.Width  )
+ #   block_keys <- c('Species', 'v1', 'v2')
+ #  
+ #   # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE)
+ #  }
+```
 
 The above is now wrapped into a [one-line command in `WVPlots`](https://winvector.github.io/WVPlots/reference/PairPlot.html).
 
@@ -158,10 +252,10 @@ tab <- td %.>%
   materialize(my_db, .)
 
 print(tab)
- #  [1] "table(`rquery_mat_84169225764052913511_0000000000`; AUC, R2)"
+ #  [1] "table(`rquery_mat_87497792956584962647_0000000000`; AUC, R2)"
   
 rstr(my_db, tab)
- #  table `rquery_mat_84169225764052913511_0000000000` SQLiteConnection 
+ #  table `rquery_mat_87497792956584962647_0000000000` SQLiteConnection 
  #   nrow: 1 
  #  'data.frame':   1 obs. of  2 variables:
  #   $ AUC: num 0.6
@@ -176,7 +270,8 @@ if(use_spark) {
 
 ------------------------------------------------------------------------
 
-The `cdata` package is a demonstration of the ["coordinatized data" theory](http://winvector.github.io/FluidData/RowsAndColumns.html) and includes an implementation of the ["fluid data" methodology](http://winvector.github.io/FluidData/FluidData.html). The recommended tutorial is: [Fluid data reshaping with cdata](http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html). We also have a [short free cdata screencast](https://youtu.be/4cYbP3kbc0k) (and another example can be found [here](http://winvector.github.io/FluidData/DataWranglingAtScale.html)).
+The `cdata` package develops the idea of the ["coordinatized data" theory](http://winvector.github.io/FluidData/RowsAndColumns.html) and includes an implementation of the ["fluid data" methodology](http://winvector.github.io/FluidData/FluidData.html).
+The recommended tutorial is: [Fluid data reshaping with cdata](http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html). We also have a [short free cdata screencast](https://youtu.be/4cYbP3kbc0k) (and another example can be found [here](http://winvector.github.io/FluidData/DataWranglingAtScale.html)). These concepts were later adapted from `cdata` by the `tidyr` package.
 
 ------------------------------------------------------------------------
 

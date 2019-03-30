@@ -8,67 +8,6 @@
 
 
 
-# confirm control table structure
-checkControlTable <- function(controlTable, controlTableKeys, strict) {
-  if(!is.data.frame(controlTable)) {
-    return("control table must be a data.frame")
-  }
-  if(length(colnames(controlTable)) != length(unique(colnames(controlTable)))) {
-    return("control table columns must be unique")
-  }
-  if(any(is.na(colnames(controlTable)))) {
-    return("control table column names must not be NA")
-  }
-  if( (length(controlTableKeys)<1) || (!is.character(controlTableKeys)) ) {
-    return("controlTableKeys must be non-empty character")
-  }
-  if(nrow(controlTable)<1) {
-    return("control table must have at least 1 row")
-  }
-  if(ncol(controlTable)<=length(controlTableKeys)) {
-    return("control table must have more columns than controlTableKeys")
-  }
-  if(length(setdiff(controlTableKeys, colnames(controlTable)))>0) {
-    return("all controlTableKeys must be controlTable column names")
-  }
-  classes <- vapply(controlTable, class, character(1))
-  if(!all(classes=='character')) {
-    return("all control table columns must be character")
-  }
-  if(any(is.na(controlTable[, controlTableKeys, drop = FALSE]))) {
-    return("control table key must not be NA")
-  }
-  if(!checkColsFormUniqueKeys(controlTable, controlTableKeys)) {
-    return("controlTable rows must be uniquely keyed by controlTableKeys key columns")
-  }
-  toCheck <- list(
-    "column names" = colnames(controlTable),
-    "keys" = unlist(controlTable[, controlTableKeys], use.names = FALSE),
-    "values" = unlist(controlTable, use.names = FALSE) # overlaps, but keys will catch first
-  )
-  for(ci in names(toCheck)) {
-    vals <- toCheck[[ci]]
-    if(length(vals)<=0) {
-      return(paste("control table", ci, "must not be empty"))
-    }
-    if(!is.character(vals)) {
-      return(paste("all control table", ci, "must be character"))
-    }
-    if(any(nchar(vals)<=0)) {
-      return(paste("all control table", ci, "must not be empty strings"))
-    }
-    if(strict) {
-      if(length(grep(".", vals, fixed=TRUE))>0) {
-        return(paste("all control table", ci ,"must '.'-free"))
-      }
-      if(!all(vals==make.names(vals))) {
-        return(paste("all control table", ci ,"must be valid R variable names"))
-      }
-    }
-  }
-  return(NULL) # good
-}
-
 
 
 
@@ -101,6 +40,7 @@ checkControlTable <- function(controlTable, controlTableKeys, strict) {
 #' }
 #'
 #' @noRd
+#' @keywords internal
 #'
 cols <- function(my_db, tableName) {
   rquery::rq_colnames(my_db, tableName)
@@ -129,6 +69,7 @@ cols <- function(my_db, tableName) {
 #' }
 #'
 #' @export
+#' @keywords internal
 #'
 qlook <- function(my_db, tableName,
                   displayRows = 10,
@@ -197,6 +138,7 @@ qlook <- function(my_db, tableName,
 #' @param strict logical, if TRUE check control table name forms
 #' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param checkNames logical, if TRUE check names
+#' @param checkKeys logical, if TRUE check wideTable keys
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
 #' @param temporary logical, if TRUE make result temporary.
@@ -227,6 +169,7 @@ qlook <- function(my_db, tableName,
 #' }
 #'
 #' @export
+#' @keywords internal
 #'
 rowrecs_to_blocks_q <- function(wideTable,
                                 controlTable,
@@ -237,6 +180,7 @@ rowrecs_to_blocks_q <- function(wideTable,
                                 strict = FALSE,
                                 controlTableKeys = colnames(controlTable)[[1]],
                                 checkNames = TRUE,
+                                checkKeys = FALSE,
                                 showQuery = FALSE,
                                 defaultValue = NULL,
                                 temporary = FALSE,
@@ -266,6 +210,14 @@ rowrecs_to_blocks_q <- function(wideTable,
                  paste(badCells, collapse = ', ')))
     }
   }
+
+  # check more
+  if(checkKeys) {
+    if(!rows_are_uniquely_keyed(rquery::db_td(my_db, wideTable), columnsToCopy, my_db)) {
+      stop("cdata::rowrecs_to_blocks_q columnsToCopy do not uniquely key the rows")
+    }
+  }
+
   ctabName <- tempNameGenerator()
   rownames(controlTable) <- NULL # just in case
   rquery::rq_copy_to(my_db,
@@ -388,6 +340,8 @@ rowrecs_to_blocks_q <- function(wideTable,
 #' }
 #'
 #' @export
+#' @keywords internal
+#'
 build_pivot_control_q <- function(tableName,
                                   columnToTakeKeysFrom,
                                   columnToTakeValuesFrom,
@@ -455,6 +409,7 @@ build_pivot_control_q <- function(tableName,
 #' @param strict logical, if TRUE check control table name forms
 #' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param checkNames logical, if TRUE check names
+#' @param checkKeys logical, if TRUE check keying of tallTable
 #' @param showQuery if TRUE print query
 #' @param defaultValue if not NULL literal to use for non-match values.
 #' @param dropDups logical if TRUE suppress duplicate columns (duplicate determined by name, not content).
@@ -488,6 +443,7 @@ build_pivot_control_q <- function(tableName,
 #' }
 #'
 #' @export
+#' @keywords internal
 #'
 blocks_to_rowrecs_q <- function(tallTable,
                                 keyColumns,
@@ -499,6 +455,7 @@ blocks_to_rowrecs_q <- function(tallTable,
                                 strict = FALSE,
                                 controlTableKeys = colnames(controlTable)[[1]],
                                 checkNames = TRUE,
+                                checkKeys = FALSE,
                                 showQuery = FALSE,
                                 defaultValue = NULL,
                                 dropDups = FALSE,
@@ -532,6 +489,16 @@ blocks_to_rowrecs_q <- function(tallTable,
                  paste(badCells, collapse = ', ')))
     }
   }
+
+  # check more
+  if(checkKeys) {
+    tallTable_db <- rquery::db_td(my_db, tallTable)
+    # check keyColumns plus controltable keys key data
+    if(!rows_are_uniquely_keyed(tallTable_db, c(controlTableKeys, keyColumns), my_db)) {
+      stop(paste("cdata::blocks_to_rowrecs_q: controlTableKeys plus keyColumns do not unique index data"))
+    }
+  }
+
   ctabName <- tempNameGenerator()
   rownames(controlTable) <- NULL # just in case
   rquery::rq_copy_to(my_db,

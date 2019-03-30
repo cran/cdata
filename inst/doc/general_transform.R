@@ -22,17 +22,17 @@ knitr::kable(data)
 keyColumns = 'record_id'
 
 incoming_shape <- qchar_frame(
-  row,  col1, col2, col3 |
-  row1, v11,  v12,  v13  |
-  row2, v21,  v22,  v23  |
-  row3, v31,  v32,  v33  )
+  "row",  "col1", "col2", "col3" |
+  "row1", v11   ,  v12  ,  v13   |
+  "row2", v21   ,  v22  ,  v23   |
+  "row3", v31   ,  v32  ,  v33   )
 
 ## ------------------------------------------------------------------------
 outgoing_shape <- qchar_frame(
-  column, row1, row2, row3 |
-  col1,   v11,  v21,  v31  |
-  col2,   v12,  v22,  v32  |
-  col3,   v13,  v23,  v33  )
+  "column", "row1", "row2", "row3" |
+  "col1"  , v11   ,  v21 ,  v31    |
+  "col2"  , v12   ,  v22 ,  v32    |
+  "col3"  , v13   ,  v23 ,  v33    )
 
 ## ------------------------------------------------------------------------
 rowrecs <- blocks_to_rowrecs(
@@ -69,7 +69,7 @@ ops <- table_desciption %.>%
 
 cat(format(ops))
 
-rquery::column_names(ops)
+rquery::column_names(ops) 
 
 if(requireNamespace("DBI", quietly = TRUE) &&
    requireNamespace("RSQLite", quietly = TRUE)) {
@@ -85,6 +85,7 @@ if(requireNamespace("DBI", quietly = TRUE) &&
   
   ops %.>% 
     db %.>% 
+    knitr::kable(.) %.>%
     print(.)
   
   DBI::dbDisconnect(raw_connection)

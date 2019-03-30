@@ -2,11 +2,17 @@
 % Please edit documentation in R/DefOps.R, R/RowsColumns.R, R/relops.R
 \name{unpivot_to_blocks}
 \alias{unpivot_to_blocks}
+\alias{pivot_to_blocks}
 \alias{unpivot_to_blocks.default}
 \alias{unpivot_to_blocks.relop}
 \title{Move values from columns to rows (anti-pivot, or "shred").}
 \usage{
 unpivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
+  columnsToTakeFrom, ..., nameForNewClassColumn = NULL,
+  checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
+  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
+
+pivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
   columnsToTakeFrom, ..., nameForNewClassColumn = NULL,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
   tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
@@ -17,8 +23,8 @@ unpivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
   strict = FALSE)
 
 \method{unpivot_to_blocks}{relop}(data, nameForNewKeyColumn,
-  nameForNewValueColumn, columnsToTakeFrom, ...,
-  nameForNewClassColumn = NULL,
+  nameForNewValueColumn, columnsToTakeFrom, ..., checkNames = TRUE,
+  checkKeys = FALSE, strict = FALSE, nameForNewClassColumn = NULL,
   tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
 }
 \arguments{
@@ -49,7 +55,7 @@ new data.frame with values moved to rows.
 }
 \description{
 This is a convenience notation for \code{rowrecs_to_blocks}.
-For a tutorial please try \code{vignette('RowsAndColumns', package='cdata')}.
+For a tutorial please try \url{https://winvector.github.io/cdata/articles/blocksrecs.html}.
 }
 \examples{
 

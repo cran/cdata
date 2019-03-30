@@ -136,6 +136,9 @@ unpivot_to_blocks.relop <- function(data,
                                     nameForNewValueColumn,
                                     columnsToTakeFrom,
                                     ...,
+                                    checkNames = TRUE,
+                                    checkKeys = FALSE,
+                                    strict = FALSE,
                                     nameForNewClassColumn = NULL,
                                     tmp_name_source = wrapr::mk_tmp_name_source("upb"),
                                     temporary = TRUE) {
@@ -148,6 +151,9 @@ unpivot_to_blocks.relop <- function(data,
   force(nameForNewValueColumn)
   force(columnsToTakeFrom)
   force(temporary)
+  force(strict)
+  force(checkNames)
+  force(checkKeys)
   incoming_table_name = tmp_name_source()
   outgoing_table_name = tmp_name_source()
   cT <- build_unpivot_control(nameForNewKeyColumn = nameForNewKeyColumn,
@@ -164,9 +170,10 @@ unpivot_to_blocks.relop <- function(data,
                         ...,
                         columnsToCopy = colsToCopy,
                         tempNameGenerator = tmp_name_source,
-                        strict = FALSE,
+                        strict = strict,
                         controlTableKeys = colnames(cT)[[1]],
-                        checkNames = FALSE,
+                        checkNames = checkNames,
+                        checkKeys = checkKeys,
                         showQuery = FALSE,
                         defaultValue = NULL,
                         temporary = temporary,
@@ -242,6 +249,7 @@ blocks_to_rowrecs.relop <- function(tallTable,
                                     ...,
                                     columnsToCopy = NULL,
                                     checkNames = TRUE,
+                                    checkKeys = FALSE,
                                     strict = FALSE,
                                     controlTableKeys = colnames(controlTable)[[1]],
                                     tmp_name_source = wrapr::mk_tmp_name_source("bltrr"),
@@ -250,15 +258,21 @@ blocks_to_rowrecs.relop <- function(tallTable,
   if(!("relop" %in% class(tallTable))) {
     stop("cdata::blocks_to_rowrecs.relop tallTable must be of class relop")
   }
-  if(!is.data.frame(controlTable)) {
-    stop("cdata::blocks_to_rowrecs controlTable should be a data.frame")
-  }
+  check_blocks_to_rowrecs_args(tallTable_columns = rquery::column_names(tallTable),
+                               keyColumns = keyColumns,
+                               controlTable = controlTable,
+                               columnsToCopy = columnsToCopy,
+                               checkNames = checkNames,
+                               strict = strict,
+                               controlTableKeys = controlTableKeys)
   force(tallTable)
   force(keyColumns)
   force(controlTable)
   force(columnsToCopy)
   force(checkNames)
   force(strict)
+  force(checkNames)
+  force(checkKeys)
   force(controlTableKeys)
   force(tmp_name_source)
   force(temporary)
@@ -283,6 +297,7 @@ blocks_to_rowrecs.relop <- function(tallTable,
                         strict = strict,
                         controlTableKeys = controlTableKeys,
                         checkNames = checkNames,
+                        checkKeys = checkKeys,
                         showQuery = FALSE,
                         defaultValue = NULL,
                         dropDups = FALSE,
@@ -363,14 +378,19 @@ rowrecs_to_blocks.relop <- function(wideTable,
   if(!("relop" %in% class(wideTable))) {
     stop("cdata::rowrecs_to_blocks.relop wideTable should be of class relop")
   }
-  if(!is.data.frame(controlTable)) {
-    stop("cdata::rowrecs_to_blocks controlTable should be a data.frame")
-  }
+  check_rowrecs_to_blocks_args(wideTable_columns = rquery::column_names(wideTable),
+                               controlTable = controlTable,
+                               checkNames = checkNames,
+                               strict = strict,
+                               controlTableKeys = controlTableKeys,
+                               columnsToCopy = columnsToCopy)
   force(wideTable)
   force(controlTable)
   force(columnsToCopy)
   force(checkNames)
   force(strict)
+  force(checkNames)
+  force(checkKeys)
   force(controlTableKeys)
   force(tmp_name_source)
   force(temporary)
@@ -392,6 +412,7 @@ rowrecs_to_blocks.relop <- function(wideTable,
                         strict = strict,
                         controlTableKeys = controlTableKeys,
                         checkNames = checkNames,
+                        checkKeys = checkKeys,
                         showQuery = FALSE,
                         defaultValue = NULL,
                         temporary = temporary,
