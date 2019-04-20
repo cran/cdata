@@ -1,4 +1,11 @@
 
+# cdata 1.0.9 2019/04/20
+
+ * "layout" commands.
+ * Deal better with duplicate entries in db-version of blocks to rows.
+ * Move to wrapr draw_framec().
+ * Fix typo in general transform example code.
+
 # cdata 1.0.8 2019/03/30
 
  * More column collision checks.
