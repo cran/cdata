@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2019-04-20" />
+<meta name="date" content="2019-04-27" />
 
 <title>Operators</title>
 
@@ -95,12 +95,12 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Operators</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2019-04-20</h4>
+<h4 class="date">2019-04-27</h4>
 
 
 
-<p>As of <code>cdata</code> version <code>1.0.8</code> <code>cdata</code> implements an operator notation for data transform.</p>
-<p>The idea is simple, yet powerful. In fact it helps us find new names for the transforms: <em>multiply</em> to block records and <em>factor</em> to row records. These terms will become clear as we work examples.</p>
+<p><code>cdata</code> recommends an operator idiom to apply data transforms.</p>
+<p>The idea is simple, yet powerful.</p>
 <p>First let’s start with some data.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
 d &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(
@@ -167,7 +167,7 @@ transform &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec<
 <span class="co">#&gt;      .         , &quot;R2&quot;     , R2      )</span>
 <span class="co">#&gt;  block_keys &lt;- c('model_id', 'measure')</span>
 <span class="co">#&gt; </span>
-<span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = TRUE, strict = FALSE)</span>
+<span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span>
 <span class="co">#&gt; }</span></code></pre></div>
 <p>Once we have this specification we can transform the data using operator notation.</p>
 <p>We can collect the record blocks into rows by a “factor-out” (or aggregation/projection) step.</p>
@@ -207,6 +207,33 @@ transform &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec<
 d2 &lt;-<span class="st"> </span>d <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform)
 
 knitr<span class="op">::</span><span class="kw">kable</span>(d2)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">model_id</th>
+<th align="right">AUC</th>
+<th align="right">R2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">0.7</td>
+<td align="right">0.4</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">0.8</td>
+<td align="right">0.5</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># (or using general pipe notation </span>
+<span class="co"># includng the .() &quot;execute immediately&quot;)</span>
+d <span class="op">%.&gt;%</span><span class="st"> </span>
+<span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span><span class="st"> </span>
+<span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -270,14 +297,50 @@ knitr<span class="op">::</span><span class="kw">kable</span>(d3)</code></pre></d
 <td align="right">0.7</td>
 </tr>
 <tr class="even">
+<td align="right">2</td>
+<td align="left">AUC</td>
+<td align="right">0.8</td>
+</tr>
+<tr class="odd">
 <td align="right">1</td>
 <td align="left">R2</td>
 <td align="right">0.4</td>
 </tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">R2</td>
+<td align="right">0.5</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># (or using general pipe notation)</span>
+d2 <span class="op">%.&gt;%</span><span class="st"> </span>
+<span class="st">  </span>transform <span class="op">%.&gt;%</span><span class="st"> </span>
+<span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="right">model_id</th>
+<th align="left">measure</th>
+<th align="right">value</th>
+</tr>
+</thead>
+<tbody>
 <tr class="odd">
+<td align="right">1</td>
+<td align="left">AUC</td>
+<td align="right">0.7</td>
+</tr>
+<tr class="even">
 <td align="right">2</td>
 <td align="left">AUC</td>
 <td align="right">0.8</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">R2</td>
+<td align="right">0.4</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
@@ -287,7 +350,7 @@ knitr<span class="op">::</span><span class="kw">kable</span>(d3)</code></pre></d
 </tbody>
 </table>
 <p>(<code>%//%</code> and <code>%**%</code> being two operators introduced by the <code>cdata</code> package.)</p>
-<p>And the two operators have an inverse/adjoint relation.</p>
+<p>And the two specialized operators have an inverse/adjoint relation.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">knitr<span class="op">::</span><span class="kw">kable</span>(d)</code></pre></div>
 <table>
 <thead>
@@ -340,14 +403,14 @@ knitr<span class="op">::</span><span class="kw">kable</span>(d4)</code></pre></d
 <td align="right">0.7</td>
 </tr>
 <tr class="even">
-<td align="right">1</td>
-<td align="left">R2</td>
-<td align="right">0.4</td>
-</tr>
-<tr class="odd">
 <td align="right">2</td>
 <td align="left">AUC</td>
 <td align="right">0.8</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">R2</td>
+<td align="right">0.4</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
@@ -431,14 +494,14 @@ d <span class="op">%.&gt;%</span><span class="st"> </span>
 <td align="right">0.7</td>
 </tr>
 <tr class="even">
-<td align="right">1</td>
-<td align="left">R2</td>
-<td align="right">0.4</td>
-</tr>
-<tr class="odd">
 <td align="right">2</td>
 <td align="left">AUC</td>
 <td align="right">0.8</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">R2</td>
+<td align="right">0.4</td>
 </tr>
 <tr class="even">
 <td align="right">2</td>
@@ -517,7 +580,6 @@ d_td <span class="op">%.&gt;%</span><span class="st"> </span>
 </tbody>
 </table>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</code></pre></div>
-<p>And that is truly fluid data manipulation.</p>
 
 
 

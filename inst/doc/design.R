@@ -5,37 +5,43 @@ knitr::opts_chunk$set(
 )
 
 ## ------------------------------------------------------------------------
-(controlTable <- wrapr::qchar_frame(
-  "flower_part", "Length"    , "Width"     |
-  "Petal"      , Petal.Length, Petal.Width |
-  "Sepal"      , Sepal.Length, Sepal.Width ))
+# get a small sample of irises
+iris <- head(iris, n = 3)
+# add a record id to iris
+iris$iris_id <- seq_len(nrow(iris))
 
-(columnsToCopy <- "Species")
-
+knitr::kable(iris)
 
 ## ------------------------------------------------------------------------
 library("cdata")
 
-iris_aug <- rowrecs_to_blocks(
-  iris,
-  controlTable = controlTable,
-  columnsToCopy = columnsToCopy) 
+controlTable <- wrapr::qchar_frame(
+  "flower_part", "Length"    , "Width"     |
+  "Petal"      , Petal.Length, Petal.Width |
+  "Sepal"      , Sepal.Length, Sepal.Width )
 
-head(iris_aug)
+layout <- rowrecs_to_blocks_spec(
+  controlTable,
+  recordKeys = c("iris_id", "Species"))
+
+print(layout)
 
 ## ------------------------------------------------------------------------
-# grab a record to use to build our control table 
-ct <- iris_aug[1:2, c("flower_part", "Length", "Width")]
-print(ct)
+iris %.>%
+  knitr::kable(.)
+  
+iris_aug <- iris %.>% 
+  layout
 
-# replace values with desired column names
-# as in this case the values are unique we can do
-# this mechanically, normally we do this by hand
-for(i in 1:nrow(ct)) {
-  for(j in 2:ncol(ct)) {
-    ct[i,j] <- colnames(iris)[which(iris[1,]==ct[i,j])]
-  }
-}
+iris_aug %.>%
+  knitr::kable(.)
 
-print(ct)
+## ------------------------------------------------------------------------
+inv_layout <- t(layout)
+
+print(inv_layout)
+
+iris_aug %.>%
+  inv_layout %.>%
+  knitr::kable(.)
 

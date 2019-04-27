@@ -34,12 +34,23 @@ d2 <- d %//% t(transform)
 
 knitr::kable(d2)
 
+# (or using general pipe notation 
+# includng the .() "execute immediately")
+d %.>% 
+  .(t(transform)) %.>% 
+  knitr::kable(.)
+
 ## ------------------------------------------------------------------------
 knitr::kable(d2)
 
 d3 <- d2 %**% transform
 
 knitr::kable(d3)
+
+# (or using general pipe notation)
+d2 %.>% 
+  transform %.>% 
+  knitr::kable(.)
 
 ## ------------------------------------------------------------------------
 knitr::kable(d)

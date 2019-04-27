@@ -13,50 +13,45 @@ iris$iris_id <- seq_len(nrow(iris))
 head(iris, n=1)
 
 ## ------------------------------------------------------------------------
-(controlTable <- wrapr::qchar_frame(
+controlTable <- wrapr::qchar_frame(
   "flower_part", "Length"      , "Width"     |
   "Petal"      , Petal.Length  , Petal.Width |
-  "Sepal"      , Sepal.Length  , Sepal.Width ))
+  "Sepal"      , Sepal.Length  , Sepal.Width )
 
-columnsToCopy <- "Species"
-
-## ------------------------------------------------------------------------
-iris_aug <- rowrecs_to_blocks(
-  head(iris, n=1),
+layout <- rowrecs_to_blocks_spec(
   controlTable,
-  columnsToCopy = columnsToCopy)
+  recordKeys = c("iris_id", "Species"))
 
-iris_aug
+print(layout)
 
 ## ------------------------------------------------------------------------
-columnsToCopy = qc(iris_id, Species)
+iris %.>%
+  head(., n = 1) %.>%
+  knitr::kable(.)
 
+iris_aug <- iris %.>%
+  head(., n = 1) %.>%
+  layout
+
+iris_aug %.>%
+  knitr::kable(.)
+
+## ------------------------------------------------------------------------
 # re-do the forward transform, this time
-# with the iris_id
-iris_aug <- rowrecs_to_blocks(
-  head(iris, n=3),
-  controlTable,
-  columnsToCopy = columnsToCopy)
+# with more records so we can see more
+iris_aug <- iris %.>%
+  head(., n = 3) %.>%
+  layout
 
-iris_aug
+knitr::kable(iris_aug)
+
+inv_layout <- t(layout)
+
+print(inv_layout)
 
 # demonstrate the reverse transform
-iris_back <- blocks_to_rowrecs(
-  iris_aug,
-  keyColumns = c("iris_id", "Species"),
-  controlTable
-)
+iris_back <- iris_aug %.>%
+  inv_layout
 
-iris_back
-
-## ------------------------------------------------------------------------
-# transform the row into a control table
-row <- blocks_to_rowrecs(controlTable, 
-                         keyColumns = NULL, 
-                         controlTable = controlTable)
-print(row)
-
-# recover the controlTable from the row
-rowrecs_to_blocks(row,
-                  controlTable = controlTable)
+knitr::kable(iris_back)
 

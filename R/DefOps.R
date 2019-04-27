@@ -40,19 +40,10 @@ build_pivot_control <- function(table,
 
 
 
-#' Map a set of columns to rows (takes a \code{data.frame}).
+#' Map a data records from row records to block records.
 #'
-#' Transform data facts from columns into additional rows controlTable.
-#'
-#'
-#' This is using the theory of "fluid data"
-#' (\url{https://github.com/WinVector/cdata}), which includes the
-#' principle that each data cell has coordinates independent of the
-#' storage details and storage detail dependent coordinates (usually
-#' row-id, column-id, and group-id) can be re-derived at will (the
-#' other principle is that there may not be "one true preferred data
-#' shape" and many re-shapings of data may be needed to match data to
-#' different algorithms and methods).
+#' Map a data records from row records (records that are exactly single rows) to block records
+#' (records that may be more than one row).
 #'
 #' The controlTable defines the names of each data element in the two notations:
 #' the notation of the tall table (which is row oriented)
@@ -68,6 +59,9 @@ build_pivot_control <- function(table,
 #' \url{https://winvector.github.io/FluidData/FluidData.html} and
 #' here \url{https://github.com/WinVector/cdata}.
 #'
+#' \code{rowrecs_to_blocks.default} will change some factor columns to character, and there
+#' are issues with time columns with different time zones.
+#'
 #' @param wideTable data.frame containing data to be mapped (in-memory data.frame).
 #' @param controlTable table specifying mapping (local data frame).
 #' @param ... force later arguments to be by name.
@@ -78,6 +72,7 @@ build_pivot_control <- function(table,
 #' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param tmp_name_source a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param temporary logical, if TRUE use temporary tables
+#' @param allow_rqdatatable logical, if TRUE allow rqdatatable shortcutting on simple conversions.
 #' @return long table built by mapping wideTable to one row per group
 #'
 #' @seealso \code{\link{build_unpivot_control}}, \code{\link{blocks_to_rowrecs}}
@@ -103,26 +98,18 @@ rowrecs_to_blocks <- function(wideTable,
                               controlTableKeys = colnames(controlTable)[[1]],
                               columnsToCopy = NULL,
                               tmp_name_source = wrapr::mk_tmp_name_source("rrtbl"),
-                              temporary = TRUE) {
+                              temporary = TRUE,
+                              allow_rqdatatable = TRUE) {
   UseMethod("rowrecs_to_blocks")
 }
 
 
 
 
-#' Map sets rows to columns (takes a \code{data.frame}).
+#' Map data records from block records to row records.
 #'
-#' Transform data facts from rows into additional columns using controlTable.
-#'
-#'
-#' This is using the theory of "fluid data"n
-#' (\url{https://github.com/WinVector/cdata}), which includes the
-#' principle that each data cell has coordinates independent of the
-#' storage details and storage detail dependent coordinates (usually
-#' row-id, column-id, and group-id) can be re-derived at will (the
-#' other principle is that there may not be "one true preferred data
-#' shape" and many re-shapings of data may be needed to match data to
-#' different algorithms and methods).
+#' Map data records from block records (which each record may be more than one row) to
+#' row records (where each record is a single row).
 #'
 #' The controlTable defines the names of each data element in the two notations:
 #' the notation of the tall table (which is row oriented)
@@ -149,6 +136,7 @@ rowrecs_to_blocks <- function(wideTable,
 #' @param controlTableKeys character, which column names of the control table are considered to be keys.
 #' @param tmp_name_source a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param temporary logical, if TRUE use temporary tables
+#' @param allow_rqdatatable logical, if TRUE allow rqdatatable shortcutting on simple conversions.
 #' @return wide table built by mapping key-grouped tallTable rows to one row per group
 #'
 #' @seealso \code{\link{build_pivot_control}}, \code{\link{rowrecs_to_blocks}}
@@ -178,17 +166,19 @@ blocks_to_rowrecs <- function(tallTable,
                               strict = FALSE,
                               controlTableKeys = colnames(controlTable)[[1]],
                               tmp_name_source = wrapr::mk_tmp_name_source("bltrr"),
-                              temporary = TRUE) {
+                              temporary = TRUE,
+                              allow_rqdatatable = FALSE) {
   UseMethod("blocks_to_rowrecs")
 }
 
 
 
 
-#' Move values from columns to rows (anti-pivot, or "shred").
+#' Map a data records from row records to block records with one record row per columnsToTakeFrom value.
 #'
-#' This is a convenience notation for \code{rowrecs_to_blocks}.
-#' For a tutorial please try \url{https://winvector.github.io/cdata/articles/blocksrecs.html}.
+#' Map a data records from row records (records that are exactly single rows) to block records
+#' (records that may be more than one row).  All columns not named in columnsToTakeFrom are copied to each
+#' record row in the result.
 #'
 #'
 #' @param data data.frame to work with.
@@ -202,13 +192,14 @@ blocks_to_rowrecs <- function(tallTable,
 #' @param strict logical, if TRUE check control table name forms.
 #' @param tmp_name_source a tempNameGenerator from cdata::mk_tmp_name_source()
 #' @param temporary logical, if TRUE make result temporary.
+#' @param allow_rqdatatable logical, if TRUE allow rqdatatable shortcutting on simple conversions.
 #' @return new data.frame with values moved to rows.
 #'
 #' @seealso \code{\link{pivot_to_rowrecs}}, \code{\link{rowrecs_to_blocks}}
 #'
 #' @examples
 #'
-#'   d <- data.frame(AUC= 0.6, R2= 0.2)
+#'   d <- data.frame(model_name = "m1", AUC = 0.6, R2 = 0.2)
 #'   unpivot_to_blocks(d,
 #'                     nameForNewKeyColumn= 'meas',
 #'                     nameForNewValueColumn= 'val',
@@ -228,7 +219,8 @@ unpivot_to_blocks <- function(data,
                               checkKeys = FALSE,
                               strict = FALSE,
                               tmp_name_source = wrapr::mk_tmp_name_source("upb"),
-                              temporary = TRUE) {
+                              temporary = TRUE,
+                              allow_rqdatatable = TRUE) {
   UseMethod("unpivot_to_blocks")
 }
 

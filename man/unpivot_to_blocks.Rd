@@ -6,32 +6,36 @@
 \alias{pivot_to_blocks}
 \alias{unpivot_to_blocks.default}
 \alias{unpivot_to_blocks.relop}
-\title{Move values from columns to rows (anti-pivot, or "shred").}
+\title{Map a data records from row records to block records with one record row per columnsToTakeFrom value.}
 \usage{
 unpivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
   columnsToTakeFrom, ..., nameForNewClassColumn = NULL,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
-  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
+  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE,
+  allow_rqdatatable = TRUE)
 
 layout_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
   columnsToTakeFrom, ..., nameForNewClassColumn = NULL,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
-  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
+  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE,
+  allow_rqdatatable = TRUE)
 
 pivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
   columnsToTakeFrom, ..., nameForNewClassColumn = NULL,
   checkNames = TRUE, checkKeys = FALSE, strict = FALSE,
-  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
+  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE,
+  allow_rqdatatable = TRUE)
 
 \method{unpivot_to_blocks}{default}(data, nameForNewKeyColumn,
   nameForNewValueColumn, columnsToTakeFrom, ...,
   nameForNewClassColumn = NULL, checkNames = TRUE, checkKeys = FALSE,
-  strict = FALSE)
+  strict = FALSE, allow_rqdatatable = TRUE)
 
 \method{unpivot_to_blocks}{relop}(data, nameForNewKeyColumn,
   nameForNewValueColumn, columnsToTakeFrom, ..., checkNames = TRUE,
   checkKeys = FALSE, strict = FALSE, nameForNewClassColumn = NULL,
-  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE)
+  tmp_name_source = wrapr::mk_tmp_name_source("upb"), temporary = TRUE,
+  allow_rqdatatable = TRUE)
 }
 \arguments{
 \item{data}{data.frame to work with.}
@@ -55,17 +59,20 @@ pivot_to_blocks(data, nameForNewKeyColumn, nameForNewValueColumn,
 \item{tmp_name_source}{a tempNameGenerator from cdata::mk_tmp_name_source()}
 
 \item{temporary}{logical, if TRUE make result temporary.}
+
+\item{allow_rqdatatable}{logical, if TRUE allow rqdatatable shortcutting on simple conversions.}
 }
 \value{
 new data.frame with values moved to rows.
 }
 \description{
-This is a convenience notation for \code{rowrecs_to_blocks}.
-For a tutorial please try \url{https://winvector.github.io/cdata/articles/blocksrecs.html}.
+Map a data records from row records (records that are exactly single rows) to block records
+(records that may be more than one row).  All columns not named in columnsToTakeFrom are copied to each
+record row in the result.
 }
 \examples{
 
-  d <- data.frame(AUC= 0.6, R2= 0.2)
+  d <- data.frame(model_name = "m1", AUC = 0.6, R2 = 0.2)
   unpivot_to_blocks(d,
                     nameForNewKeyColumn= 'meas',
                     nameForNewValueColumn= 'val',

@@ -15,7 +15,8 @@ unpivot_to_blocks.default <- function(data,
                                       nameForNewClassColumn = NULL,
                                       checkNames = TRUE,
                                       checkKeys = FALSE,
-                                      strict = FALSE) {
+                                      strict = FALSE,
+                                      allow_rqdatatable = TRUE) {
   if(!is.data.frame(data)) {
     stop("cdata::unpivot_to_blocks.default data must be a local data.frame")
   }
@@ -83,10 +84,11 @@ unpivot_to_blocks.default <- function(data,
   res
 }
 
-#' Move values from rows to columns (pivot).
+#' Map data records from block records that have one row per measurement value to row records.
 #'
-#' This is a convenience notation for \code{blocks_to_rowrecs}.
-#' For a tutorial please try \url{https://winvector.github.io/cdata/articles/blocksrecs.html}.
+#' Map data records from block records (where each record may be more than one row) to
+#' row records (where each record is a single row).  Values specified in rowKeyColumns
+#' determine which sets of rows build up records and are copied into the result.
 #'
 #'
 #' @param data data.frame to work with (must be local, for remote please try \code{moveValuesToColumns*}).
@@ -98,17 +100,18 @@ unpivot_to_blocks.default <- function(data,
 #' @param checkNames logical, if TRUE check names.
 #' @param checkKeys logical, if TRUE check keyColumns uniquely identify blocks (required).
 #' @param strict logical, if TRUE check control table name forms
+#' @param allow_rqdatatable logical, if TRUE allow rqdatatable shortcutting on simple conversions.
 #' @return new data.frame with values moved to columns.
 #'
 #' @seealso \code{\link{unpivot_to_blocks}}, \code{\link{blocks_to_rowrecs}}
 #'
 #' @examples
 #'
-#'   d <- data.frame(meas= c('AUC', 'R2'), val= c(0.6, 0.2))
+#'   d <- data.frame(model_id = c("m1", "m1"), meas = c('AUC', 'R2'), val= c(0.6, 0.2))
 #'   pivot_to_rowrecs(d,
 #'                    columnToTakeKeysFrom= 'meas',
 #'                    columnToTakeValuesFrom= 'val',
-#'                    rowKeyColumns= c()) %.>%
+#'                    rowKeyColumns= "model_id") %.>%
 #'      print(.)
 #'
 #' @export
@@ -121,7 +124,8 @@ pivot_to_rowrecs <- function(data,
                              sep = NULL,
                              checkNames = TRUE,
                              checkKeys = TRUE,
-                             strict = FALSE) {
+                             strict = FALSE,
+                             allow_rqdatatable = FALSE) {
   if(!is.data.frame(data)) {
     stop("cdata::pivot_to_rowrecs data must be a local data.frame")
   }
@@ -174,7 +178,8 @@ pivot_to_rowrecs <- function(data,
                     columnsToCopy = colsToCopy,
                     checkNames = checkNames,
                     checkKeys = checkKeys,
-                    strict = strict)
+                    strict = strict,
+                    allow_rqdatatable = allow_rqdatatable)
 }
 
 #' @rdname pivot_to_rowrecs
