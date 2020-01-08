@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -13,7 +12,7 @@
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2019-10-29" />
+<meta name="date" content="2020-01-07" />
 
 <title>General Data Transforms With cdata</title>
 
@@ -304,7 +303,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">General Data Transforms With cdata</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2019-10-29</h4>
+<h4 class="date">2020-01-07</h4>
 
 
 
@@ -701,38 +700,37 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb9-13" data-line-number="13"><span class="co">#&gt;  non_sql_node(., rowrecs_to_blocks(.))</span></a>
 <a class="sourceLine" id="cb9-14" data-line-number="14"></a>
 <a class="sourceLine" id="cb9-15" data-line-number="15">rquery<span class="op">::</span><span class="kw">column_names</span>(ops) </a>
-<a class="sourceLine" id="cb9-16" data-line-number="16"><span class="co">#&gt; [1] &quot;record_id&quot;    &quot;column_label&quot; &quot;c_row1&quot;       &quot;c_row2&quot;      </span></a>
-<a class="sourceLine" id="cb9-17" data-line-number="17"><span class="co">#&gt; [5] &quot;c_row3&quot;</span></a>
-<a class="sourceLine" id="cb9-18" data-line-number="18"></a>
-<a class="sourceLine" id="cb9-19" data-line-number="19"><span class="cf">if</span>(<span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></a>
-<a class="sourceLine" id="cb9-20" data-line-number="20"><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)) {</a>
-<a class="sourceLine" id="cb9-21" data-line-number="21">  raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </a>
-<a class="sourceLine" id="cb9-22" data-line-number="22">                                   <span class="st">&quot;:memory:&quot;</span>)</a>
-<a class="sourceLine" id="cb9-23" data-line-number="23">  RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</a>
-<a class="sourceLine" id="cb9-24" data-line-number="24">  db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</a>
-<a class="sourceLine" id="cb9-25" data-line-number="25">    <span class="dt">connection =</span> raw_connection,</a>
-<a class="sourceLine" id="cb9-26" data-line-number="26">    <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb9-27" data-line-number="27">    <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</a>
-<a class="sourceLine" id="cb9-28" data-line-number="28">  </a>
-<a class="sourceLine" id="cb9-29" data-line-number="29">  db_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;data&quot;</span>, data)</a>
-<a class="sourceLine" id="cb9-30" data-line-number="30">  </a>
-<a class="sourceLine" id="cb9-31" data-line-number="31">  ops <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb9-32" data-line-number="32"><span class="st">    </span>db <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb9-33" data-line-number="33"><span class="st">    </span>knitr<span class="op">::</span><span class="kw">kable</span>(.) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb9-34" data-line-number="34"><span class="st">    </span><span class="kw">print</span>(.)</a>
-<a class="sourceLine" id="cb9-35" data-line-number="35">  </a>
-<a class="sourceLine" id="cb9-36" data-line-number="36">  DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</a>
-<a class="sourceLine" id="cb9-37" data-line-number="37">}</a>
+<a class="sourceLine" id="cb9-16" data-line-number="16"><span class="co">#&gt; [1] &quot;record_id&quot;    &quot;column_label&quot; &quot;c_row1&quot;       &quot;c_row2&quot;       &quot;c_row3&quot;</span></a>
+<a class="sourceLine" id="cb9-17" data-line-number="17"></a>
+<a class="sourceLine" id="cb9-18" data-line-number="18"><span class="cf">if</span>(<span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></a>
+<a class="sourceLine" id="cb9-19" data-line-number="19"><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)) {</a>
+<a class="sourceLine" id="cb9-20" data-line-number="20">  raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </a>
+<a class="sourceLine" id="cb9-21" data-line-number="21">                                   <span class="st">&quot;:memory:&quot;</span>)</a>
+<a class="sourceLine" id="cb9-22" data-line-number="22">  RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</a>
+<a class="sourceLine" id="cb9-23" data-line-number="23">  db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</a>
+<a class="sourceLine" id="cb9-24" data-line-number="24">    <span class="dt">connection =</span> raw_connection,</a>
+<a class="sourceLine" id="cb9-25" data-line-number="25">    <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb9-26" data-line-number="26">    <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</a>
+<a class="sourceLine" id="cb9-27" data-line-number="27">  </a>
+<a class="sourceLine" id="cb9-28" data-line-number="28">  db_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;data&quot;</span>, data)</a>
+<a class="sourceLine" id="cb9-29" data-line-number="29">  </a>
+<a class="sourceLine" id="cb9-30" data-line-number="30">  ops <span class="op">%.&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-31" data-line-number="31"><span class="st">    </span>db <span class="op">%.&gt;%</span><span class="st"> </span></a>
+<a class="sourceLine" id="cb9-32" data-line-number="32"><span class="st">    </span>knitr<span class="op">::</span><span class="kw">kable</span>(.) <span class="op">%.&gt;%</span></a>
+<a class="sourceLine" id="cb9-33" data-line-number="33"><span class="st">    </span><span class="kw">print</span>(.)</a>
+<a class="sourceLine" id="cb9-34" data-line-number="34">  </a>
+<a class="sourceLine" id="cb9-35" data-line-number="35">  DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</a>
+<a class="sourceLine" id="cb9-36" data-line-number="36">}</a>
+<a class="sourceLine" id="cb9-37" data-line-number="37"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-38" data-line-number="38"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-39" data-line-number="39"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-40" data-line-number="40"><span class="co">#&gt;  record_id  column_label    c_row1   c_row2   c_row3</span></a>
-<a class="sourceLine" id="cb9-41" data-line-number="41"><span class="co">#&gt; ----------  -------------  -------  -------  -------</span></a>
-<a class="sourceLine" id="cb9-42" data-line-number="42"><span class="co">#&gt;          1  rec_col1             1        4        7</span></a>
-<a class="sourceLine" id="cb9-43" data-line-number="43"><span class="co">#&gt;          1  rec_col2             2        5        8</span></a>
-<a class="sourceLine" id="cb9-44" data-line-number="44"><span class="co">#&gt;          1  rec_col3             3        6        9</span></a>
-<a class="sourceLine" id="cb9-45" data-line-number="45"><span class="co">#&gt;          2  rec_col1            11       14       17</span></a>
-<a class="sourceLine" id="cb9-46" data-line-number="46"><span class="co">#&gt;          2  rec_col2            12       15       18</span></a>
-<a class="sourceLine" id="cb9-47" data-line-number="47"><span class="co">#&gt;          2  rec_col3            13       16       19</span></a></code></pre></div>
+<a class="sourceLine" id="cb9-39" data-line-number="39"><span class="co">#&gt;  record_id  column_label    c_row1   c_row2   c_row3</span></a>
+<a class="sourceLine" id="cb9-40" data-line-number="40"><span class="co">#&gt; ----------  -------------  -------  -------  -------</span></a>
+<a class="sourceLine" id="cb9-41" data-line-number="41"><span class="co">#&gt;          1  rec_col1             1        4        7</span></a>
+<a class="sourceLine" id="cb9-42" data-line-number="42"><span class="co">#&gt;          1  rec_col2             2        5        8</span></a>
+<a class="sourceLine" id="cb9-43" data-line-number="43"><span class="co">#&gt;          1  rec_col3             3        6        9</span></a>
+<a class="sourceLine" id="cb9-44" data-line-number="44"><span class="co">#&gt;          2  rec_col1            11       14       17</span></a>
+<a class="sourceLine" id="cb9-45" data-line-number="45"><span class="co">#&gt;          2  rec_col2            12       15       18</span></a>
+<a class="sourceLine" id="cb9-46" data-line-number="46"><span class="co">#&gt;          2  rec_col3            13       16       19</span></a></code></pre></div>
 <p>And that is some of the generality of <code>cdata</code> transforms.</p>
 
 

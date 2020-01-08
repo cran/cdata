@@ -1,4 +1,8 @@
 
+# cdata 1.1.4 2020/01/07
+
+ * Tolerate nonexistent column value.
+
 # cdata 1.1.3 2019/10/29
 
  * Decorate transform.
