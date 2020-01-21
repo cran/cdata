@@ -1,4 +1,9 @@
 
+# cdata 1.1.5 2020/01/21
+
+ * Fix SQL path and improve queries tolerance to types.
+ * Allow more trivial cases in transform construction.
+
 # cdata 1.1.4 2020/01/07
 
  * Tolerate nonexistent column value.
