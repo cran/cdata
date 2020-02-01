@@ -94,7 +94,7 @@ db <- rquery::rquery_db_info(
 
 d_td <- rquery::rq_copy_to(db, "d", d)
 
-## ----eva=have_db--------------------------------------------------------------
+## ----eval=have_db-------------------------------------------------------------
 ops <- d_td %//% t(transform)
 cat(format(ops))
 
