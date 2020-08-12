@@ -8,21 +8,37 @@
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2020-02-01" />
+<meta name="date" content="2020-08-12" />
 
 <title>cdata</title>
 
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -32,14 +48,16 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -48,9 +66,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -117,9 +135,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,7 +303,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -303,11 +319,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">cdata</h1>
 <h4 class="author">John Mount, Win-Vector LLC</h4>
-<h4 class="date">2020-02-01</h4>
+<h4 class="date">2020-08-12</h4>
 
 
 
-<p>The <a href="https://github.com/WinVector/cdata"><code>cdata</code></a> package is a demonstration of the <a href="http://winvector.github.io/FluidData/RowsAndColumns.html">“coordinatized data” theory</a> and includes an implementation of the <a href="http://winvector.github.io/FluidData/FluidData.html">“fluid data” methodology</a>.</p>
+<p>The <a href="https://github.com/WinVector/cdata"><code>cdata</code></a> package is a demonstration of the <a href="https://winvector.github.io/FluidData/RowsAndColumns.html">“coordinatized data” theory</a> and includes an implementation of the <a href="https://winvector.github.io/FluidData/FluidData.html">“fluid data” methodology</a>.</p>
 <p>Briefly <code>cdata</code> supplies data transform operators that:</p>
 <ul>
 <li>Work on local data or with any <code>DBI</code> data source.</li>
@@ -315,20 +331,20 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li>Can be specified by drawing an example.</li>
 </ul>
 <p>A quick example:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="co"># first few rows of the iris data as an example</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4">d &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</a>
-<a class="sourceLine" id="cb1-5" data-line-number="5">   <span class="st">&quot;Sepal.Length&quot;</span>  , <span class="st">&quot;Sepal.Width&quot;</span>, <span class="st">&quot;Petal.Length&quot;</span>, <span class="st">&quot;Petal.Width&quot;</span>, <span class="st">&quot;Species&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">     </span><span class="fl">5.1</span>           , <span class="fl">3.5</span>          , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">     </span><span class="fl">4.9</span>           , <span class="dv">3</span>            , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">     </span><span class="fl">4.7</span>           , <span class="fl">3.2</span>          , <span class="fl">1.3</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="st">     </span><span class="fl">4.6</span>           , <span class="fl">3.1</span>          , <span class="fl">1.5</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="st">     </span><span class="dv">5</span>             , <span class="fl">3.6</span>          , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-11" data-line-number="11"><span class="st">     </span><span class="fl">5.4</span>           , <span class="fl">3.9</span>          , <span class="fl">1.7</span>           , <span class="fl">0.4</span>          , <span class="st">&quot;setosa&quot;</span>  )</a>
-<a class="sourceLine" id="cb1-12" data-line-number="12">d<span class="op">$</span>iris_id &lt;-<span class="st"> </span><span class="kw">seq_len</span>(<span class="kw">nrow</span>(d))</a>
-<a class="sourceLine" id="cb1-13" data-line-number="13"></a>
-<a class="sourceLine" id="cb1-14" data-line-number="14">knitr<span class="op">::</span><span class="kw">kable</span>(d)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co"># first few rows of the iris data as an example</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>d &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</span>
+<span id="cb1-5"><a href="#cb1-5"></a>   <span class="st">&quot;Sepal.Length&quot;</span>  , <span class="st">&quot;Sepal.Width&quot;</span>, <span class="st">&quot;Petal.Length&quot;</span>, <span class="st">&quot;Petal.Width&quot;</span>, <span class="st">&quot;Species&quot;</span> <span class="op">|</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="st">     </span><span class="fl">5.1</span>           , <span class="fl">3.5</span>          , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="st">     </span><span class="fl">4.9</span>           , <span class="dv">3</span>            , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="st">     </span><span class="fl">4.7</span>           , <span class="fl">3.2</span>          , <span class="fl">1.3</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="st">     </span><span class="fl">4.6</span>           , <span class="fl">3.1</span>          , <span class="fl">1.5</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="st">     </span><span class="dv">5</span>             , <span class="fl">3.6</span>          , <span class="fl">1.4</span>           , <span class="fl">0.2</span>          , <span class="st">&quot;setosa&quot;</span>  <span class="op">|</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="st">     </span><span class="fl">5.4</span>           , <span class="fl">3.9</span>          , <span class="fl">1.7</span>           , <span class="fl">0.4</span>          , <span class="st">&quot;setosa&quot;</span>  )</span>
+<span id="cb1-12"><a href="#cb1-12"></a>d<span class="op">$</span>iris_id &lt;-<span class="st"> </span><span class="kw">seq_len</span>(<span class="kw">nrow</span>(d))</span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -392,14 +408,14 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>Now suppose we want to take the above “all facts about each iris are in a single row” representation and convert it into a per-iris record block with the following structure.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">record_example &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2">   <span class="st">&quot;plant_part&quot;</span>  , <span class="st">&quot;measurement&quot;</span>, <span class="st">&quot;value&quot;</span>      <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3"><span class="st">     &quot;sepal&quot;</span>     , <span class="st">&quot;width&quot;</span>      , Sepal.Width  <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-4" data-line-number="4"><span class="st">     &quot;sepal&quot;</span>     , <span class="st">&quot;length&quot;</span>     , Sepal.Length <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="st">     &quot;petal&quot;</span>     , <span class="st">&quot;width&quot;</span>      , Petal.Width  <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">     &quot;petal&quot;</span>     , <span class="st">&quot;length&quot;</span>     , Petal.Length )</a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">knitr<span class="op">::</span><span class="kw">kable</span>(record_example)</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>record_example &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</span>
+<span id="cb2-2"><a href="#cb2-2"></a>   <span class="st">&quot;plant_part&quot;</span>  , <span class="st">&quot;measurement&quot;</span>, <span class="st">&quot;value&quot;</span>      <span class="op">|</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="st">     &quot;sepal&quot;</span>     , <span class="st">&quot;width&quot;</span>      , Sepal.Width  <span class="op">|</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a><span class="st">     &quot;sepal&quot;</span>     , <span class="st">&quot;length&quot;</span>     , Sepal.Length <span class="op">|</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="st">     &quot;petal&quot;</span>     , <span class="st">&quot;width&quot;</span>      , Petal.Width  <span class="op">|</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="st">     &quot;petal&quot;</span>     , <span class="st">&quot;length&quot;</span>     , Petal.Length )</span>
+<span id="cb2-7"><a href="#cb2-7"></a></span>
+<span id="cb2-8"><a href="#cb2-8"></a>knitr<span class="op">::</span><span class="kw">kable</span>(record_example)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -433,17 +449,17 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </table>
 <p>The above sort of transformation may seem exotic, but it is fairly common when we want to plot many aspects of a record at the same time.</p>
 <p>To specify our transformation we combine the record example with information about how records are keyed (recordKeys showing which rows go together to form a record, and controlTableKeys specifying the internal structure of a data record).</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">layout &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec</span>(</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">  record_example,</a>
-<a class="sourceLine" id="cb3-3" data-line-number="3">  <span class="dt">controlTableKeys =</span> <span class="kw">c</span>(<span class="st">&quot;plant_part&quot;</span>, <span class="st">&quot;measurement&quot;</span>),</a>
-<a class="sourceLine" id="cb3-4" data-line-number="4">  <span class="dt">recordKeys =</span> <span class="kw">c</span>(<span class="st">&quot;iris_id&quot;</span>, <span class="st">&quot;Species&quot;</span>))</a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb3-6" data-line-number="6"><span class="kw">print</span>(layout)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>layout &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec</span>(</span>
+<span id="cb3-2"><a href="#cb3-2"></a>  record_example,</span>
+<span id="cb3-3"><a href="#cb3-3"></a>  <span class="dt">controlTableKeys =</span> <span class="kw">c</span>(<span class="st">&quot;plant_part&quot;</span>, <span class="st">&quot;measurement&quot;</span>),</span>
+<span id="cb3-4"><a href="#cb3-4"></a>  <span class="dt">recordKeys =</span> <span class="kw">c</span>(<span class="st">&quot;iris_id&quot;</span>, <span class="st">&quot;Species&quot;</span>))</span>
+<span id="cb3-5"><a href="#cb3-5"></a></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="kw">print</span>(layout)</span></code></pre></div>
 <pre><code>## {
 ##  row_record &lt;- wrapr::qchar_frame(
 ##    &quot;iris_id&quot;  , &quot;Species&quot;, &quot;Sepal.Width&quot;, &quot;Sepal.Length&quot;, &quot;Petal.Width&quot;, &quot;Petal.Length&quot; |
 ##      .        , .        , Sepal.Width  , Sepal.Length  , Petal.Width  , Petal.Length   )
-##  row_keys &lt;- c('iris_id', 'Species')
+##  row_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;)
 ## 
 ##  # becomes
 ## 
@@ -453,16 +469,16 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ##      .        , .        , &quot;sepal&quot;     , &quot;length&quot;     , Sepal.Length |
 ##      .        , .        , &quot;petal&quot;     , &quot;width&quot;      , Petal.Width  |
 ##      .        , .        , &quot;petal&quot;     , &quot;length&quot;     , Petal.Length )
-##  block_keys &lt;- c('iris_id', 'Species', 'plant_part', 'measurement')
+##  block_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;, &#39;plant_part&#39;, &#39;measurement&#39;)
 ## 
 ##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)
 ## }</code></pre>
 <p>In the above we have used the common useful data organizing trick of specifying a dependent column (Species being a function of iris_id) as an additional key.</p>
 <p>This layout then specifies and implements the data transform. We can transform the data by sending it to the layout.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">d_transformed &lt;-<span class="st"> </span>d <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="st">  </span>layout</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">knitr<span class="op">::</span><span class="kw">kable</span>(d_transformed)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>d_transformed &lt;-<span class="st"> </span>d <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="st">  </span>layout</span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d_transformed)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -645,9 +661,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>And it is easy to invert these transforms using the <code>t()</code> transpose/adjoint notation.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">inv_layout &lt;-<span class="st"> </span><span class="kw">t</span>(layout)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="kw">print</span>(inv_layout)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>inv_layout &lt;-<span class="st"> </span><span class="kw">t</span>(layout)</span>
+<span id="cb6-2"><a href="#cb6-2"></a></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="kw">print</span>(inv_layout)</span></code></pre></div>
 <pre><code>## {
 ##  block_record &lt;- wrapr::qchar_frame(
 ##    &quot;iris_id&quot;  , &quot;Species&quot;, &quot;plant_part&quot;, &quot;measurement&quot;, &quot;value&quot;      |
@@ -655,20 +671,20 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 ##      .        , .        , &quot;sepal&quot;     , &quot;length&quot;     , Sepal.Length |
 ##      .        , .        , &quot;petal&quot;     , &quot;width&quot;      , Petal.Width  |
 ##      .        , .        , &quot;petal&quot;     , &quot;length&quot;     , Petal.Length )
-##  block_keys &lt;- c('iris_id', 'Species', 'plant_part', 'measurement')
+##  block_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;, &#39;plant_part&#39;, &#39;measurement&#39;)
 ## 
 ##  # becomes
 ## 
 ##  row_record &lt;- wrapr::qchar_frame(
 ##    &quot;iris_id&quot;  , &quot;Species&quot;, &quot;Sepal.Width&quot;, &quot;Sepal.Length&quot;, &quot;Petal.Width&quot;, &quot;Petal.Length&quot; |
 ##      .        , .        , Sepal.Width  , Sepal.Length  , Petal.Width  , Petal.Length   )
-##  row_keys &lt;- c('iris_id', 'Species')
+##  row_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;)
 ## 
 ##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)
 ## }</code></pre>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">d_transformed <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="st">  </span>inv_layout <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>d_transformed <span class="op">%.&gt;%</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="st">  </span>inv_layout <span class="op">%.&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -732,7 +748,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>The layout specifications themselves are just simple lists with “pretty print methods” (the control table being simply and example record in the form of a data.frame).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1"><span class="kw">unclass</span>(layout)</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">unclass</span>(layout)</span></code></pre></div>
 <pre><code>## $controlTable
 ##   plant_part measurement        value
 ## 1      sepal       width  Sepal.Width
@@ -774,7 +790,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li><a href="https://winvector.github.io/wrapr/reference/build_frame.html"><code>wrapr::build_frame()</code></a> a helper function for specifying data frames.</li>
 </ul>
 <p>The package vignettes can be found in the “Articles” tab of <a href="https://winvector.github.io/cdata/">the <code>cdata</code> documentation site</a>.</p>
-<p>The (older) recommended tutorial is: <a href="http://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html">Fluid data reshaping with cdata</a>. We also have an (older) <a href="https://youtu.be/4cYbP3kbc0k">short free cdata screencast</a> (and another example can be found <a href="http://winvector.github.io/FluidData/DataWranglingAtScale.html">here</a>).</p>
+<p>The (older) recommended tutorial is: <a href="https://winvector.github.io/FluidData/FluidDataReshapingWithCdata.html">Fluid data reshaping with cdata</a>. We also have an (older) <a href="https://youtu.be/4cYbP3kbc0k">short free cdata screencast</a> (and another example can be found <a href="https://winvector.github.io/FluidData/DataWranglingAtScale.html">here</a>).</p>
 
 
 

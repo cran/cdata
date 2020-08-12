@@ -8,21 +8,37 @@
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2020-02-01" />
+<meta name="date" content="2020-08-12" />
 
 <title>General Data Transforms With cdata</title>
 
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -32,14 +48,16 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -48,9 +66,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -117,9 +135,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,7 +303,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -303,25 +319,25 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">General Data Transforms With cdata</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2020-02-01</h4>
+<h4 class="date">2020-08-12</h4>
 
 
 
 <p>One of the design goals of the <a href="https://github.com/WinVector/cdata"><code>cdata</code></a> <a href="https://www.r-project.org"><code>R</code></a> package is that data occurs in records, and records may be a pattern of cells in a groups of rows.</p>
 <p>The allows <code>cdata</code> to support very powerful and arbitrary record transforms in one or two steps. Using “row records” (that is records that are exactly one row) as an intermediate lets us take just about any record shape to just about any record shape: first convert to row-records, then re-block the data into arbitrary record shapes (please see <a href="https://winvector.github.io/cdata/articles/blocksrecs.html">here</a> and <a href="https://winvector.github.io/cdata/articles/design.html">here</a> for the concepts).</p>
 <p>But as with all general ideas, it is much easier to see what we mean by the above with a concrete example. Let’s consider the following artificial (but simple) example. Suppose we have the following data.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">data &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</a>
-<a class="sourceLine" id="cb1-4" data-line-number="4">   <span class="st">&quot;record_id&quot;</span>  , <span class="st">&quot;row&quot;</span> , <span class="st">&quot;col1&quot;</span>, <span class="st">&quot;col2&quot;</span>, <span class="st">&quot;col3&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row1&quot;</span>, <span class="dv">1</span>     , <span class="dv">2</span>     , <span class="dv">3</span>      <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row2&quot;</span>, <span class="dv">4</span>     , <span class="dv">5</span>     , <span class="dv">6</span>      <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row3&quot;</span>, <span class="dv">7</span>     , <span class="dv">8</span>     , <span class="dv">9</span>      <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row1&quot;</span>, <span class="dv">11</span>    , <span class="dv">12</span>    , <span class="dv">13</span>     <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-9" data-line-number="9"><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row2&quot;</span>, <span class="dv">14</span>    , <span class="dv">15</span>    , <span class="dv">16</span>     <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-10" data-line-number="10"><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row3&quot;</span>, <span class="dv">17</span>    , <span class="dv">18</span>    , <span class="dv">19</span>     )</a>
-<a class="sourceLine" id="cb1-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb1-12" data-line-number="12">knitr<span class="op">::</span><span class="kw">kable</span>(data)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a>data &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</span>
+<span id="cb1-4"><a href="#cb1-4"></a>   <span class="st">&quot;record_id&quot;</span>  , <span class="st">&quot;row&quot;</span> , <span class="st">&quot;col1&quot;</span>, <span class="st">&quot;col2&quot;</span>, <span class="st">&quot;col3&quot;</span> <span class="op">|</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row1&quot;</span>, <span class="dv">1</span>     , <span class="dv">2</span>     , <span class="dv">3</span>      <span class="op">|</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row2&quot;</span>, <span class="dv">4</span>     , <span class="dv">5</span>     , <span class="dv">6</span>      <span class="op">|</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="st">     </span><span class="dv">1</span>          , <span class="st">&quot;row3&quot;</span>, <span class="dv">7</span>     , <span class="dv">8</span>     , <span class="dv">9</span>      <span class="op">|</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row1&quot;</span>, <span class="dv">11</span>    , <span class="dv">12</span>    , <span class="dv">13</span>     <span class="op">|</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row2&quot;</span>, <span class="dv">14</span>    , <span class="dv">15</span>    , <span class="dv">16</span>     <span class="op">|</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="st">     </span><span class="dv">2</span>          , <span class="st">&quot;row3&quot;</span>, <span class="dv">17</span>    , <span class="dv">18</span>    , <span class="dv">19</span>     )</span>
+<span id="cb1-11"><a href="#cb1-11"></a></span>
+<span id="cb1-12"><a href="#cb1-12"></a>knitr<span class="op">::</span><span class="kw">kable</span>(data)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -379,49 +395,49 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </table>
 <p>In the above the records are the triples of rows with matching <code>record_id</code> and the different rows within the record are identified by the value in the <code>row</code> column. So The data items are named by the triplet <code>record_id</code>, <code>row</code> and renaming column name (<code>col1</code>, <code>col2</code>, or <code>col2</code>). This sort of naming of values is essentially <a href="https://en.wikipedia.org/wiki/Codd%27s_12_rules">Codd’s “guaranteed access rule”</a>.</p>
 <p>Suppose we want to transpose each of the records- swapping the row and column notions. With <code>cdata</code> this is easy. First you design a transform to flatten each complex record into a single wide row (using the design steps taught <a href="https://winvector.github.io/cdata/articles/design.html">here</a>). Essentially that is just specifying the following control variables. We define how to identify records (the key columns) and the structure of the records (giving the interior of the record arbitrary names we will re-use later).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">recordKeys =<span class="st"> 'record_id'</span></a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">incoming_shape &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">   <span class="st">&quot;row&quot;</span>   , <span class="st">&quot;col1&quot;</span>, <span class="st">&quot;col2&quot;</span>, <span class="st">&quot;col3&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-5" data-line-number="5"><span class="st">     &quot;row1&quot;</span>, v11   , v12   , v13    <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">     &quot;row2&quot;</span>, v21   , v22   , v23    <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="st">     &quot;row3&quot;</span>, v31   , v32   , v33    )</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a>recordKeys =<span class="st"> &#39;record_id&#39;</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a>incoming_shape &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</span>
+<span id="cb2-4"><a href="#cb2-4"></a>   <span class="st">&quot;row&quot;</span>   , <span class="st">&quot;col1&quot;</span>, <span class="st">&quot;col2&quot;</span>, <span class="st">&quot;col3&quot;</span> <span class="op">|</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a><span class="st">     &quot;row1&quot;</span>, v11   , v12   , v13    <span class="op">|</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="st">     &quot;row2&quot;</span>, v21   , v22   , v23    <span class="op">|</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="st">     &quot;row3&quot;</span>, v31   , v32   , v33    )</span></code></pre></div>
 <p>And we specify (using the same principles) the desired final record shape, re-using the interior names from the first step to show where values are to be mapped.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">outgoing_shape &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">   <span class="st">&quot;column_label&quot;</span>  , <span class="st">&quot;c_row1&quot;</span>, <span class="st">&quot;c_row2&quot;</span>, <span class="st">&quot;c_row3&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb3-3" data-line-number="3"><span class="st">     &quot;rec_col1&quot;</span>    , v11     , v21     , v31      <span class="op">|</span></a>
-<a class="sourceLine" id="cb3-4" data-line-number="4"><span class="st">     &quot;rec_col2&quot;</span>    , v12     , v22     , v32      <span class="op">|</span></a>
-<a class="sourceLine" id="cb3-5" data-line-number="5"><span class="st">     &quot;rec_col3&quot;</span>    , v13     , v23     , v33      )</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>outgoing_shape &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</span>
+<span id="cb3-2"><a href="#cb3-2"></a>   <span class="st">&quot;column_label&quot;</span>  , <span class="st">&quot;c_row1&quot;</span>, <span class="st">&quot;c_row2&quot;</span>, <span class="st">&quot;c_row3&quot;</span> <span class="op">|</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="st">     &quot;rec_col1&quot;</span>    , v11     , v21     , v31      <span class="op">|</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="st">     &quot;rec_col2&quot;</span>    , v12     , v22     , v32      <span class="op">|</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="st">     &quot;rec_col3&quot;</span>    , v13     , v23     , v33      )</span></code></pre></div>
 <p>Once you have done this you specify the overall transform by building a layout specifying the incoming and outgoing record shapes.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">layout &lt;-<span class="st"> </span><span class="kw">layout_specification</span>(</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">  <span class="dt">incoming_shape =</span> incoming_shape,</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">  <span class="dt">outgoing_shape =</span> outgoing_shape,</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">  <span class="dt">recordKeys =</span> recordKeys)</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5"></a>
-<a class="sourceLine" id="cb4-6" data-line-number="6"><span class="kw">print</span>(layout)</a>
-<a class="sourceLine" id="cb4-7" data-line-number="7"><span class="co">#&gt; {</span></a>
-<a class="sourceLine" id="cb4-8" data-line-number="8"><span class="co">#&gt;  in_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb4-9" data-line-number="9"><span class="co">#&gt;    &quot;record_id&quot;  , &quot;row&quot; , &quot;col1&quot;, &quot;col2&quot;, &quot;col3&quot; |</span></a>
-<a class="sourceLine" id="cb4-10" data-line-number="10"><span class="co">#&gt;      .          , &quot;row1&quot;, v11   , v12   , v13    |</span></a>
-<a class="sourceLine" id="cb4-11" data-line-number="11"><span class="co">#&gt;      .          , &quot;row2&quot;, v21   , v22   , v23    |</span></a>
-<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="co">#&gt;      .          , &quot;row3&quot;, v31   , v32   , v33    )</span></a>
-<a class="sourceLine" id="cb4-13" data-line-number="13"><span class="co">#&gt;  in_keys &lt;- c('record_id', 'row')</span></a>
-<a class="sourceLine" id="cb4-14" data-line-number="14"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb4-15" data-line-number="15"><span class="co">#&gt;  # becomes</span></a>
-<a class="sourceLine" id="cb4-16" data-line-number="16"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb4-17" data-line-number="17"><span class="co">#&gt;  out_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb4-18" data-line-number="18"><span class="co">#&gt;    &quot;record_id&quot;  , &quot;column_label&quot;, &quot;c_row1&quot;, &quot;c_row2&quot;, &quot;c_row3&quot; |</span></a>
-<a class="sourceLine" id="cb4-19" data-line-number="19"><span class="co">#&gt;      .          , &quot;rec_col1&quot;    , v11     , v21     , v31      |</span></a>
-<a class="sourceLine" id="cb4-20" data-line-number="20"><span class="co">#&gt;      .          , &quot;rec_col2&quot;    , v12     , v22     , v32      |</span></a>
-<a class="sourceLine" id="cb4-21" data-line-number="21"><span class="co">#&gt;      .          , &quot;rec_col3&quot;    , v13     , v23     , v33      )</span></a>
-<a class="sourceLine" id="cb4-22" data-line-number="22"><span class="co">#&gt;  out_keys &lt;- c('record_id', 'column_label')</span></a>
-<a class="sourceLine" id="cb4-23" data-line-number="23"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb4-24" data-line-number="24"><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = TRUE, strict = FALSE, allow_rqdatatable = FALSE)</span></a>
-<a class="sourceLine" id="cb4-25" data-line-number="25"><span class="co">#&gt; }</span></a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a>layout &lt;-<span class="st"> </span><span class="kw">layout_specification</span>(</span>
+<span id="cb4-2"><a href="#cb4-2"></a>  <span class="dt">incoming_shape =</span> incoming_shape,</span>
+<span id="cb4-3"><a href="#cb4-3"></a>  <span class="dt">outgoing_shape =</span> outgoing_shape,</span>
+<span id="cb4-4"><a href="#cb4-4"></a>  <span class="dt">recordKeys =</span> recordKeys)</span>
+<span id="cb4-5"><a href="#cb4-5"></a></span>
+<span id="cb4-6"><a href="#cb4-6"></a><span class="kw">print</span>(layout)</span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="co">#&gt; {</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a><span class="co">#&gt;  in_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="co">#&gt;    &quot;record_id&quot;  , &quot;row&quot; , &quot;col1&quot;, &quot;col2&quot;, &quot;col3&quot; |</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="co">#&gt;      .          , &quot;row1&quot;, v11   , v12   , v13    |</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="co">#&gt;      .          , &quot;row2&quot;, v21   , v22   , v23    |</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="co">#&gt;      .          , &quot;row3&quot;, v31   , v32   , v33    )</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a><span class="co">#&gt;  in_keys &lt;- c(&#39;record_id&#39;, &#39;row&#39;)</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a><span class="co">#&gt; </span></span>
+<span id="cb4-15"><a href="#cb4-15"></a><span class="co">#&gt;  # becomes</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a><span class="co">#&gt; </span></span>
+<span id="cb4-17"><a href="#cb4-17"></a><span class="co">#&gt;  out_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a><span class="co">#&gt;    &quot;record_id&quot;  , &quot;column_label&quot;, &quot;c_row1&quot;, &quot;c_row2&quot;, &quot;c_row3&quot; |</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a><span class="co">#&gt;      .          , &quot;rec_col1&quot;    , v11     , v21     , v31      |</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a><span class="co">#&gt;      .          , &quot;rec_col2&quot;    , v12     , v22     , v32      |</span></span>
+<span id="cb4-21"><a href="#cb4-21"></a><span class="co">#&gt;      .          , &quot;rec_col3&quot;    , v13     , v23     , v33      )</span></span>
+<span id="cb4-22"><a href="#cb4-22"></a><span class="co">#&gt;  out_keys &lt;- c(&#39;record_id&#39;, &#39;column_label&#39;)</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a><span class="co">#&gt; </span></span>
+<span id="cb4-24"><a href="#cb4-24"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = TRUE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
+<span id="cb4-25"><a href="#cb4-25"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>This layout specification or controller can then perform the transform.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">data <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="st">  </span>layout <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>data <span class="op">%.&gt;%</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="st">  </span>layout <span class="op">%.&gt;%</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -481,8 +497,8 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <p>The principle is “draw a picture.” First we draw a picture of the block record structure we have, and then we draw a picture of the block record structure we want.</p>
 <p>As you have seen, we have complete freedom to re-name columns and record-piece labels (the labels that tell us which portion of a block-record each row fits into).</p>
 <p>If you don’t want to use pipe notation, you can use the method <code>layout_by()</code> (which takes a layout specification as an argument) or the method <code>convert_records()</code> (which takes the components of the transform specification as separate arguments).</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">lr &lt;-<span class="st"> </span><span class="kw">layout_by</span>(layout, data)</a>
-<a class="sourceLine" id="cb6-2" data-line-number="2">knitr<span class="op">::</span><span class="kw">kable</span>(lr)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>lr &lt;-<span class="st"> </span><span class="kw">layout_by</span>(layout, data)</span>
+<span id="cb6-2"><a href="#cb6-2"></a>knitr<span class="op">::</span><span class="kw">kable</span>(lr)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -538,14 +554,14 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">cr &lt;-<span class="st"> </span><span class="kw">convert_records</span>(</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3">  data,</a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">  <span class="dt">keyColumns =</span> recordKeys,</a>
-<a class="sourceLine" id="cb7-5" data-line-number="5">  <span class="dt">incoming_shape =</span> incoming_shape,</a>
-<a class="sourceLine" id="cb7-6" data-line-number="6">  <span class="dt">outgoing_shape =</span> outgoing_shape)</a>
-<a class="sourceLine" id="cb7-7" data-line-number="7"></a>
-<a class="sourceLine" id="cb7-8" data-line-number="8">knitr<span class="op">::</span><span class="kw">kable</span>(cr)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2"></a>cr &lt;-<span class="st"> </span><span class="kw">convert_records</span>(</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  data,</span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="dt">keyColumns =</span> recordKeys,</span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="dt">incoming_shape =</span> incoming_shape,</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="dt">outgoing_shape =</span> outgoing_shape)</span>
+<span id="cb7-7"><a href="#cb7-7"></a></span>
+<span id="cb7-8"><a href="#cb7-8"></a>knitr<span class="op">::</span><span class="kw">kable</span>(cr)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -602,33 +618,33 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>A nifty bonus is: if the transformation is “faithful” (preserves enough cells and labels), then it is invertible and in fact easy to invert (by the <code>t()</code> transpose/adjoint function).</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">inv_layout &lt;-<span class="st"> </span><span class="kw">t</span>(layout)</a>
-<a class="sourceLine" id="cb8-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="kw">print</span>(inv_layout)</a>
-<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="co">#&gt; {</span></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="co">#&gt;  in_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="co">#&gt;    &quot;record_id&quot;  , &quot;column_label&quot;, &quot;c_row1&quot;, &quot;c_row2&quot;, &quot;c_row3&quot; |</span></a>
-<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="co">#&gt;      .          , &quot;rec_col1&quot;    , v11     , v21     , v31      |</span></a>
-<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="co">#&gt;      .          , &quot;rec_col2&quot;    , v12     , v22     , v32      |</span></a>
-<a class="sourceLine" id="cb8-9" data-line-number="9"><span class="co">#&gt;      .          , &quot;rec_col3&quot;    , v13     , v23     , v33      )</span></a>
-<a class="sourceLine" id="cb8-10" data-line-number="10"><span class="co">#&gt;  in_keys &lt;- c('record_id', 'column_label')</span></a>
-<a class="sourceLine" id="cb8-11" data-line-number="11"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb8-12" data-line-number="12"><span class="co">#&gt;  # becomes</span></a>
-<a class="sourceLine" id="cb8-13" data-line-number="13"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb8-14" data-line-number="14"><span class="co">#&gt;  out_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb8-15" data-line-number="15"><span class="co">#&gt;    &quot;record_id&quot;  , &quot;row&quot; , &quot;col1&quot;, &quot;col2&quot;, &quot;col3&quot; |</span></a>
-<a class="sourceLine" id="cb8-16" data-line-number="16"><span class="co">#&gt;      .          , &quot;row1&quot;, v11   , v12   , v13    |</span></a>
-<a class="sourceLine" id="cb8-17" data-line-number="17"><span class="co">#&gt;      .          , &quot;row2&quot;, v21   , v22   , v23    |</span></a>
-<a class="sourceLine" id="cb8-18" data-line-number="18"><span class="co">#&gt;      .          , &quot;row3&quot;, v31   , v32   , v33    )</span></a>
-<a class="sourceLine" id="cb8-19" data-line-number="19"><span class="co">#&gt;  out_keys &lt;- c('record_id', 'row')</span></a>
-<a class="sourceLine" id="cb8-20" data-line-number="20"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb8-21" data-line-number="21"><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = TRUE, strict = FALSE, allow_rqdatatable = FALSE)</span></a>
-<a class="sourceLine" id="cb8-22" data-line-number="22"><span class="co">#&gt; }</span></a>
-<a class="sourceLine" id="cb8-23" data-line-number="23"></a>
-<a class="sourceLine" id="cb8-24" data-line-number="24">data <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb8-25" data-line-number="25"><span class="st">  </span>layout <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="st">  </span>inv_layout <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb8-27" data-line-number="27"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>inv_layout &lt;-<span class="st"> </span><span class="kw">t</span>(layout)</span>
+<span id="cb8-2"><a href="#cb8-2"></a></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="kw">print</span>(inv_layout)</span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt; {</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt;  in_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt;    &quot;record_id&quot;  , &quot;column_label&quot;, &quot;c_row1&quot;, &quot;c_row2&quot;, &quot;c_row3&quot; |</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt;      .          , &quot;rec_col1&quot;    , v11     , v21     , v31      |</span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt;      .          , &quot;rec_col2&quot;    , v12     , v22     , v32      |</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt;      .          , &quot;rec_col3&quot;    , v13     , v23     , v33      )</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt;  in_keys &lt;- c(&#39;record_id&#39;, &#39;column_label&#39;)</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co">#&gt; </span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co">#&gt;  # becomes</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt; </span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt;  out_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="co">#&gt;    &quot;record_id&quot;  , &quot;row&quot; , &quot;col1&quot;, &quot;col2&quot;, &quot;col3&quot; |</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a><span class="co">#&gt;      .          , &quot;row1&quot;, v11   , v12   , v13    |</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a><span class="co">#&gt;      .          , &quot;row2&quot;, v21   , v22   , v23    |</span></span>
+<span id="cb8-18"><a href="#cb8-18"></a><span class="co">#&gt;      .          , &quot;row3&quot;, v31   , v32   , v33    )</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="co">#&gt;  out_keys &lt;- c(&#39;record_id&#39;, &#39;row&#39;)</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a><span class="co">#&gt; </span></span>
+<span id="cb8-21"><a href="#cb8-21"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = TRUE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
+<span id="cb8-22"><a href="#cb8-22"></a><span class="co">#&gt; }</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a></span>
+<span id="cb8-24"><a href="#cb8-24"></a>data <span class="op">%.&gt;%</span></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="st">  </span>layout <span class="op">%.&gt;%</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a><span class="st">  </span>inv_layout <span class="op">%.&gt;%</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -685,52 +701,52 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>Also these conversions can also be translated into <a href="https://github.com/WinVector/rquery"><code>rquery</code></a> operators, and therefore saved to be run either in memory or directly on a database.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">table_desciption &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">local_td</span>(data)</a>
-<a class="sourceLine" id="cb9-2" data-line-number="2">ops &lt;-<span class="st"> </span>table_desciption <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="st">  </span>layout</a>
-<a class="sourceLine" id="cb9-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb9-5" data-line-number="5"><span class="kw">cat</span>(<span class="kw">format</span>(ops))</a>
-<a class="sourceLine" id="cb9-6" data-line-number="6"><span class="co">#&gt; mk_td(&quot;data&quot;, c(</span></a>
-<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="co">#&gt;   &quot;record_id&quot;,</span></a>
-<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="co">#&gt;   &quot;row&quot;,</span></a>
-<a class="sourceLine" id="cb9-9" data-line-number="9"><span class="co">#&gt;   &quot;col1&quot;,</span></a>
-<a class="sourceLine" id="cb9-10" data-line-number="10"><span class="co">#&gt;   &quot;col2&quot;,</span></a>
-<a class="sourceLine" id="cb9-11" data-line-number="11"><span class="co">#&gt;   &quot;col3&quot;)) %.&gt;%</span></a>
-<a class="sourceLine" id="cb9-12" data-line-number="12"><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;record_id&quot; &quot;record_id&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row1' THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v11&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row1' THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v12&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row1' THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v13&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row2' THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v21&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row2' THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v22&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row2' THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v23&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row3' THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v31&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row3' THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v32&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = 'row3' THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v33&quot; FROM &quot;IN&quot; a GROUP BY a.&quot;record_id&quot;) %.&gt;%</span></a>
-<a class="sourceLine" id="cb9-13" data-line-number="13"><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;record_id&quot;, b.&quot;column_label&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col1' THEN a.&quot;v11&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col2' THEN a.&quot;v12&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col3' THEN a.&quot;v13&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row1&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col1' THEN a.&quot;v21&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col2' THEN a.&quot;v22&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col3' THEN a.&quot;v23&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row2&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col1' THEN a.&quot;v31&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col2' THEN a.&quot;v32&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = 'rec_col3' THEN a.&quot;v33&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row3&quot; FROM &quot;IN&quot; a CROSS JOIN &quot;rrtbl_74558864480508799837_0000000002&quot; b )</span></a>
-<a class="sourceLine" id="cb9-14" data-line-number="14"></a>
-<a class="sourceLine" id="cb9-15" data-line-number="15">rquery<span class="op">::</span><span class="kw">column_names</span>(ops) </a>
-<a class="sourceLine" id="cb9-16" data-line-number="16"><span class="co">#&gt; [1] &quot;record_id&quot;    &quot;column_label&quot; &quot;c_row1&quot;       &quot;c_row2&quot;       &quot;c_row3&quot;</span></a>
-<a class="sourceLine" id="cb9-17" data-line-number="17"></a>
-<a class="sourceLine" id="cb9-18" data-line-number="18"><span class="cf">if</span>(<span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></a>
-<a class="sourceLine" id="cb9-19" data-line-number="19"><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)) {</a>
-<a class="sourceLine" id="cb9-20" data-line-number="20">  raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </a>
-<a class="sourceLine" id="cb9-21" data-line-number="21">                                   <span class="st">&quot;:memory:&quot;</span>)</a>
-<a class="sourceLine" id="cb9-22" data-line-number="22">  RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</a>
-<a class="sourceLine" id="cb9-23" data-line-number="23">  db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</a>
-<a class="sourceLine" id="cb9-24" data-line-number="24">    <span class="dt">connection =</span> raw_connection,</a>
-<a class="sourceLine" id="cb9-25" data-line-number="25">    <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb9-26" data-line-number="26">    <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</a>
-<a class="sourceLine" id="cb9-27" data-line-number="27">  </a>
-<a class="sourceLine" id="cb9-28" data-line-number="28">  db_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;data&quot;</span>, data)</a>
-<a class="sourceLine" id="cb9-29" data-line-number="29">  </a>
-<a class="sourceLine" id="cb9-30" data-line-number="30">  ops <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb9-31" data-line-number="31"><span class="st">    </span>db <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb9-32" data-line-number="32"><span class="st">    </span>knitr<span class="op">::</span><span class="kw">kable</span>(.) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb9-33" data-line-number="33"><span class="st">    </span><span class="kw">print</span>(.)</a>
-<a class="sourceLine" id="cb9-34" data-line-number="34">  </a>
-<a class="sourceLine" id="cb9-35" data-line-number="35">  DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</a>
-<a class="sourceLine" id="cb9-36" data-line-number="36">}</a>
-<a class="sourceLine" id="cb9-37" data-line-number="37"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-38" data-line-number="38"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-39" data-line-number="39"><span class="co">#&gt;  record_id  column_label    c_row1   c_row2   c_row3</span></a>
-<a class="sourceLine" id="cb9-40" data-line-number="40"><span class="co">#&gt; ----------  -------------  -------  -------  -------</span></a>
-<a class="sourceLine" id="cb9-41" data-line-number="41"><span class="co">#&gt;          1  rec_col1             1        4        7</span></a>
-<a class="sourceLine" id="cb9-42" data-line-number="42"><span class="co">#&gt;          1  rec_col2             2        5        8</span></a>
-<a class="sourceLine" id="cb9-43" data-line-number="43"><span class="co">#&gt;          1  rec_col3             3        6        9</span></a>
-<a class="sourceLine" id="cb9-44" data-line-number="44"><span class="co">#&gt;          2  rec_col1            11       14       17</span></a>
-<a class="sourceLine" id="cb9-45" data-line-number="45"><span class="co">#&gt;          2  rec_col2            12       15       18</span></a>
-<a class="sourceLine" id="cb9-46" data-line-number="46"><span class="co">#&gt;          2  rec_col3            13       16       19</span></a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>table_desciption &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">local_td</span>(data)</span>
+<span id="cb9-2"><a href="#cb9-2"></a>ops &lt;-<span class="st"> </span>table_desciption <span class="op">%.&gt;%</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="st">  </span>layout</span>
+<span id="cb9-4"><a href="#cb9-4"></a></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="kw">cat</span>(<span class="kw">format</span>(ops))</span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="co">#&gt; mk_td(&quot;data&quot;, c(</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt;   &quot;record_id&quot;,</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt;   &quot;row&quot;,</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a><span class="co">#&gt;   &quot;col1&quot;,</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a><span class="co">#&gt;   &quot;col2&quot;,</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="co">#&gt;   &quot;col3&quot;)) %.&gt;%</span></span>
+<span id="cb9-12"><a href="#cb9-12"></a><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;record_id&quot; &quot;record_id&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row1&#39; THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v11&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row1&#39; THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v12&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row1&#39; THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v13&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row2&#39; THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v21&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row2&#39; THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v22&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row2&#39; THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v23&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row3&#39; THEN a.&quot;col1&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v31&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row3&#39; THEN a.&quot;col2&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v32&quot;, MAX( CASE WHEN CAST(a.&quot;row&quot; AS VARCHAR) = &#39;row3&#39; THEN a.&quot;col3&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;v33&quot; FROM &quot;IN&quot; a GROUP BY a.&quot;record_id&quot;) %.&gt;%</span></span>
+<span id="cb9-13"><a href="#cb9-13"></a><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;record_id&quot;, b.&quot;column_label&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col1&#39; THEN a.&quot;v11&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col2&#39; THEN a.&quot;v12&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col3&#39; THEN a.&quot;v13&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row1&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col1&#39; THEN a.&quot;v21&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col2&#39; THEN a.&quot;v22&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col3&#39; THEN a.&quot;v23&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row2&quot;, CASE  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col1&#39; THEN a.&quot;v31&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col2&#39; THEN a.&quot;v32&quot;  WHEN CAST(b.&quot;column_label&quot; AS VARCHAR) = &#39;rec_col3&#39; THEN a.&quot;v33&quot; ELSE NULL </span><span class="re">END</span><span class="co"> AS &quot;c_row3&quot; FROM &quot;IN&quot; a CROSS JOIN &quot;rrtbl_44612512869430682487_0000000002&quot; b )</span></span>
+<span id="cb9-14"><a href="#cb9-14"></a></span>
+<span id="cb9-15"><a href="#cb9-15"></a>rquery<span class="op">::</span><span class="kw">column_names</span>(ops) </span>
+<span id="cb9-16"><a href="#cb9-16"></a><span class="co">#&gt; [1] &quot;record_id&quot;    &quot;column_label&quot; &quot;c_row1&quot;       &quot;c_row2&quot;       &quot;c_row3&quot;</span></span>
+<span id="cb9-17"><a href="#cb9-17"></a></span>
+<span id="cb9-18"><a href="#cb9-18"></a><span class="cf">if</span>(<span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></span>
+<span id="cb9-19"><a href="#cb9-19"></a><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)) {</span>
+<span id="cb9-20"><a href="#cb9-20"></a>  raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </span>
+<span id="cb9-21"><a href="#cb9-21"></a>                                   <span class="st">&quot;:memory:&quot;</span>)</span>
+<span id="cb9-22"><a href="#cb9-22"></a>  RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</span>
+<span id="cb9-23"><a href="#cb9-23"></a>  db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</span>
+<span id="cb9-24"><a href="#cb9-24"></a>    <span class="dt">connection =</span> raw_connection,</span>
+<span id="cb9-25"><a href="#cb9-25"></a>    <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb9-26"><a href="#cb9-26"></a>    <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</span>
+<span id="cb9-27"><a href="#cb9-27"></a>  </span>
+<span id="cb9-28"><a href="#cb9-28"></a>  db_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;data&quot;</span>, data)</span>
+<span id="cb9-29"><a href="#cb9-29"></a>  </span>
+<span id="cb9-30"><a href="#cb9-30"></a>  ops <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb9-31"><a href="#cb9-31"></a><span class="st">    </span>db <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb9-32"><a href="#cb9-32"></a><span class="st">    </span>knitr<span class="op">::</span><span class="kw">kable</span>(.) <span class="op">%.&gt;%</span></span>
+<span id="cb9-33"><a href="#cb9-33"></a><span class="st">    </span><span class="kw">print</span>(.)</span>
+<span id="cb9-34"><a href="#cb9-34"></a>  </span>
+<span id="cb9-35"><a href="#cb9-35"></a>  DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</span>
+<span id="cb9-36"><a href="#cb9-36"></a>}</span>
+<span id="cb9-37"><a href="#cb9-37"></a><span class="co">#&gt; </span></span>
+<span id="cb9-38"><a href="#cb9-38"></a><span class="co">#&gt; </span></span>
+<span id="cb9-39"><a href="#cb9-39"></a><span class="co">#&gt; | record_id|column_label | c_row1| c_row2| c_row3|</span></span>
+<span id="cb9-40"><a href="#cb9-40"></a><span class="co">#&gt; |---------:|:------------|------:|------:|------:|</span></span>
+<span id="cb9-41"><a href="#cb9-41"></a><span class="co">#&gt; |         1|rec_col1     |      1|      4|      7|</span></span>
+<span id="cb9-42"><a href="#cb9-42"></a><span class="co">#&gt; |         1|rec_col2     |      2|      5|      8|</span></span>
+<span id="cb9-43"><a href="#cb9-43"></a><span class="co">#&gt; |         1|rec_col3     |      3|      6|      9|</span></span>
+<span id="cb9-44"><a href="#cb9-44"></a><span class="co">#&gt; |         2|rec_col1     |     11|     14|     17|</span></span>
+<span id="cb9-45"><a href="#cb9-45"></a><span class="co">#&gt; |         2|rec_col2     |     12|     15|     18|</span></span>
+<span id="cb9-46"><a href="#cb9-46"></a><span class="co">#&gt; |         2|rec_col3     |     13|     16|     19|</span></span></code></pre></div>
 <p>And that is some of the generality of <code>cdata</code> transforms.</p>
 
 

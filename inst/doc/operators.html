@@ -8,21 +8,37 @@
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2020-02-01" />
+<meta name="date" content="2020-08-12" />
 
 <title>Operators</title>
 
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
 <style type="text/css" data-origin="pandoc">
-a.sourceLine { display: inline-block; line-height: 1.25; }
-a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
-a.sourceLine:empty { height: 1.2em; }
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode { white-space: pre; position: relative; }
 div.sourceCode { margin: 1em 0; }
@@ -32,14 +48,16 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 code.sourceCode { white-space: pre-wrap; }
-a.sourceLine { text-indent: -1em; padding-left: 1em; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
-pre.numberSource a.sourceLine
-  { position: relative; left: -4em; }
-pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
-    border: none; pointer-events: all; display: inline-block;
+    border: none; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
     -khtml-user-select: none; -moz-user-select: none;
     -ms-user-select: none; user-select: none;
@@ -48,9 +66,9 @@ pre.numberSource a.sourceLine::before
   }
 pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
 div.sourceCode
-  {  }
+  {   }
 @media screen {
-a.sourceLine::before { text-decoration: underline; }
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 code span.al { color: #ff0000; font-weight: bold; } /* Alert */
 code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
@@ -117,9 +135,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,7 +303,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -303,22 +319,22 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Operators</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2020-02-01</h4>
+<h4 class="date">2020-08-12</h4>
 
 
 
 <p><code>cdata</code> recommends an operator idiom to apply data transforms.</p>
 <p>The idea is simple, yet powerful.</p>
 <p>First let’s start with some data.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">d &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">   <span class="st">&quot;model_id&quot;</span>  , <span class="st">&quot;measure&quot;</span>, <span class="st">&quot;value&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4"><span class="st">     </span><span class="dv">1</span>         , <span class="st">&quot;AUC&quot;</span>    , <span class="fl">0.7</span>     <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5"><span class="st">     </span><span class="dv">1</span>         , <span class="st">&quot;R2&quot;</span>     , <span class="fl">0.4</span>     <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6"><span class="st">     </span><span class="dv">2</span>         , <span class="st">&quot;AUC&quot;</span>    , <span class="fl">0.8</span>     <span class="op">|</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7"><span class="st">     </span><span class="dv">2</span>         , <span class="st">&quot;R2&quot;</span>     , <span class="fl">0.5</span>     )</a>
-<a class="sourceLine" id="cb1-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb1-9" data-line-number="9">knitr<span class="op">::</span><span class="kw">kable</span>(d)</a></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a></span>
+<span id="cb1-2"><a href="#cb1-2"></a>d &lt;-<span class="st"> </span>wrapr<span class="op">::</span><span class="kw">build_frame</span>(</span>
+<span id="cb1-3"><a href="#cb1-3"></a>   <span class="st">&quot;model_id&quot;</span>  , <span class="st">&quot;measure&quot;</span>, <span class="st">&quot;value&quot;</span> <span class="op">|</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="st">     </span><span class="dv">1</span>         , <span class="st">&quot;AUC&quot;</span>    , <span class="fl">0.7</span>     <span class="op">|</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="st">     </span><span class="dv">1</span>         , <span class="st">&quot;R2&quot;</span>     , <span class="fl">0.4</span>     <span class="op">|</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="st">     </span><span class="dv">2</span>         , <span class="st">&quot;AUC&quot;</span>    , <span class="fl">0.8</span>     <span class="op">|</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="st">     </span><span class="dv">2</span>         , <span class="st">&quot;R2&quot;</span>     , <span class="fl">0.5</span>     )</span>
+<span id="cb1-8"><a href="#cb1-8"></a></span>
+<span id="cb1-9"><a href="#cb1-9"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -351,35 +367,35 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>In the above data we have two measurements each for two individuals (individuals identified by the “<code>model_id</code>” column). Using <code>cdata</code>’s <code>rowrecs_to_blocks_spec()</code> method we can capture a description of this record structure and transformation details.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</a>
-<a class="sourceLine" id="cb2-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb2-3" data-line-number="3">transform &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec</span>(</a>
-<a class="sourceLine" id="cb2-4" data-line-number="4">  wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</a>
-<a class="sourceLine" id="cb2-5" data-line-number="5">    <span class="st">&quot;measure&quot;</span>, <span class="st">&quot;value&quot;</span> <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-6" data-line-number="6"><span class="st">    &quot;AUC&quot;</span>    , AUC     <span class="op">|</span></a>
-<a class="sourceLine" id="cb2-7" data-line-number="7"><span class="st">    &quot;R2&quot;</span>     , R2      ),</a>
-<a class="sourceLine" id="cb2-8" data-line-number="8">  <span class="dt">recordKeys =</span> <span class="st">&quot;model_id&quot;</span>)</a>
-<a class="sourceLine" id="cb2-9" data-line-number="9"></a>
-<a class="sourceLine" id="cb2-10" data-line-number="10"><span class="kw">print</span>(transform)</a>
-<a class="sourceLine" id="cb2-11" data-line-number="11"><span class="co">#&gt; {</span></a>
-<a class="sourceLine" id="cb2-12" data-line-number="12"><span class="co">#&gt;  row_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb2-13" data-line-number="13"><span class="co">#&gt;    &quot;model_id&quot;  , &quot;AUC&quot;, &quot;R2&quot; |</span></a>
-<a class="sourceLine" id="cb2-14" data-line-number="14"><span class="co">#&gt;      .         , AUC  , R2   )</span></a>
-<a class="sourceLine" id="cb2-15" data-line-number="15"><span class="co">#&gt;  row_keys &lt;- c('model_id')</span></a>
-<a class="sourceLine" id="cb2-16" data-line-number="16"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-17" data-line-number="17"><span class="co">#&gt;  # becomes</span></a>
-<a class="sourceLine" id="cb2-18" data-line-number="18"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-19" data-line-number="19"><span class="co">#&gt;  block_record &lt;- wrapr::qchar_frame(</span></a>
-<a class="sourceLine" id="cb2-20" data-line-number="20"><span class="co">#&gt;    &quot;model_id&quot;  , &quot;measure&quot;, &quot;value&quot; |</span></a>
-<a class="sourceLine" id="cb2-21" data-line-number="21"><span class="co">#&gt;      .         , &quot;AUC&quot;    , AUC     |</span></a>
-<a class="sourceLine" id="cb2-22" data-line-number="22"><span class="co">#&gt;      .         , &quot;R2&quot;     , R2      )</span></a>
-<a class="sourceLine" id="cb2-23" data-line-number="23"><span class="co">#&gt;  block_keys &lt;- c('model_id', 'measure')</span></a>
-<a class="sourceLine" id="cb2-24" data-line-number="24"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-25" data-line-number="25"><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></a>
-<a class="sourceLine" id="cb2-26" data-line-number="26"><span class="co">#&gt; }</span></a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="kw">library</span>(<span class="st">&quot;cdata&quot;</span>)</span>
+<span id="cb2-2"><a href="#cb2-2"></a></span>
+<span id="cb2-3"><a href="#cb2-3"></a>transform &lt;-<span class="st"> </span><span class="kw">rowrecs_to_blocks_spec</span>(</span>
+<span id="cb2-4"><a href="#cb2-4"></a>  wrapr<span class="op">::</span><span class="kw">qchar_frame</span>(</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    <span class="st">&quot;measure&quot;</span>, <span class="st">&quot;value&quot;</span> <span class="op">|</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a><span class="st">    &quot;AUC&quot;</span>    , AUC     <span class="op">|</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="st">    &quot;R2&quot;</span>     , R2      ),</span>
+<span id="cb2-8"><a href="#cb2-8"></a>  <span class="dt">recordKeys =</span> <span class="st">&quot;model_id&quot;</span>)</span>
+<span id="cb2-9"><a href="#cb2-9"></a></span>
+<span id="cb2-10"><a href="#cb2-10"></a><span class="kw">print</span>(transform)</span>
+<span id="cb2-11"><a href="#cb2-11"></a><span class="co">#&gt; {</span></span>
+<span id="cb2-12"><a href="#cb2-12"></a><span class="co">#&gt;  row_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb2-13"><a href="#cb2-13"></a><span class="co">#&gt;    &quot;model_id&quot;  , &quot;AUC&quot;, &quot;R2&quot; |</span></span>
+<span id="cb2-14"><a href="#cb2-14"></a><span class="co">#&gt;      .         , AUC  , R2   )</span></span>
+<span id="cb2-15"><a href="#cb2-15"></a><span class="co">#&gt;  row_keys &lt;- c(&#39;model_id&#39;)</span></span>
+<span id="cb2-16"><a href="#cb2-16"></a><span class="co">#&gt; </span></span>
+<span id="cb2-17"><a href="#cb2-17"></a><span class="co">#&gt;  # becomes</span></span>
+<span id="cb2-18"><a href="#cb2-18"></a><span class="co">#&gt; </span></span>
+<span id="cb2-19"><a href="#cb2-19"></a><span class="co">#&gt;  block_record &lt;- wrapr::qchar_frame(</span></span>
+<span id="cb2-20"><a href="#cb2-20"></a><span class="co">#&gt;    &quot;model_id&quot;  , &quot;measure&quot;, &quot;value&quot; |</span></span>
+<span id="cb2-21"><a href="#cb2-21"></a><span class="co">#&gt;      .         , &quot;AUC&quot;    , AUC     |</span></span>
+<span id="cb2-22"><a href="#cb2-22"></a><span class="co">#&gt;      .         , &quot;R2&quot;     , R2      )</span></span>
+<span id="cb2-23"><a href="#cb2-23"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;model_id&#39;, &#39;measure&#39;)</span></span>
+<span id="cb2-24"><a href="#cb2-24"></a><span class="co">#&gt; </span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb2-26"><a href="#cb2-26"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>Once we have this specification we can transform the data using operator notation.</p>
 <p>We can collect the record blocks into rows by a “factor-out” (or aggregation/projection) step.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">knitr<span class="op">::</span><span class="kw">kable</span>(d)</a></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -411,10 +427,10 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">d2 &lt;-<span class="st"> </span>d <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform)</a>
-<a class="sourceLine" id="cb4-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">knitr<span class="op">::</span><span class="kw">kable</span>(d2)</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a></span>
+<span id="cb4-2"><a href="#cb4-2"></a>d2 &lt;-<span class="st"> </span>d <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform)</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d2)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -436,12 +452,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="co"># (or using general pipe notation </span></a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="co"># includng the .() &quot;execute immediately&quot;)</span></a>
-<a class="sourceLine" id="cb5-4" data-line-number="4">d <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb5-6" data-line-number="6"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="co"># (or using general pipe notation </span></span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="co"># includng the .() &quot;execute immediately&quot;)</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>d <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb5-5"><a href="#cb5-5"></a><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb5-6"><a href="#cb5-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -464,7 +480,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>We can expand record rows into blocks by a “multiplication” (or join) step.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">knitr<span class="op">::</span><span class="kw">kable</span>(d2)</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d2)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -486,10 +502,10 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb7-2" data-line-number="2">d3 &lt;-<span class="st"> </span>d2 <span class="op">%**%</span><span class="st"> </span>transform</a>
-<a class="sourceLine" id="cb7-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb7-4" data-line-number="4">knitr<span class="op">::</span><span class="kw">kable</span>(d3)</a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a></span>
+<span id="cb7-2"><a href="#cb7-2"></a>d3 &lt;-<span class="st"> </span>d2 <span class="op">%**%</span><span class="st"> </span>transform</span>
+<span id="cb7-3"><a href="#cb7-3"></a></span>
+<span id="cb7-4"><a href="#cb7-4"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d3)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -521,11 +537,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co"># (or using general pipe notation)</span></a>
-<a class="sourceLine" id="cb8-3" data-line-number="3">d2 <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="st">  </span>transform <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="co"># (or using general pipe notation)</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>d2 <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="st">  </span>transform <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -559,7 +575,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </table>
 <p>(<code>%//%</code> and <code>%**%</code> being two operators introduced by the <code>cdata</code> package.)</p>
 <p>And the two specialized operators have an inverse/adjoint relation.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">knitr<span class="op">::</span><span class="kw">kable</span>(d)</a></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -591,11 +607,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="co"># identity</span></a>
-<a class="sourceLine" id="cb10-3" data-line-number="3">d4 &lt;-<span class="st"> </span>d <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform) <span class="op">%**%</span><span class="st"> </span>transform</a>
-<a class="sourceLine" id="cb10-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb10-5" data-line-number="5">knitr<span class="op">::</span><span class="kw">kable</span>(d4)</a></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="co"># identity</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>d4 &lt;-<span class="st"> </span>d <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform) <span class="op">%**%</span><span class="st"> </span>transform</span>
+<span id="cb10-4"><a href="#cb10-4"></a></span>
+<span id="cb10-5"><a href="#cb10-5"></a>knitr<span class="op">::</span><span class="kw">kable</span>(d4)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -628,12 +644,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>We can also pipe into the spec (and into its adjoint) using the <a href="https://github.com/WinVector/wrapr"><code>wrapr</code></a> <a href="https://winvector.github.io/wrapr/reference/dot_arrow.html"><code>dot pipe operator</code></a>.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1"><span class="co"># reverse or adjoint/transpose operation specification</span></a>
-<a class="sourceLine" id="cb11-2" data-line-number="2">t_record_spec &lt;-<span class="st"> </span><span class="kw">t</span>(transform)</a>
-<a class="sourceLine" id="cb11-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb11-4" data-line-number="4">d <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb11-5" data-line-number="5"><span class="st">  </span>t_record_spec <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb11-6" data-line-number="6"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># reverse or adjoint/transpose operation specification</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>t_record_spec &lt;-<span class="st"> </span><span class="kw">t</span>(transform)</span>
+<span id="cb11-3"><a href="#cb11-3"></a></span>
+<span id="cb11-4"><a href="#cb11-4"></a>d <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="st">  </span>t_record_spec <span class="op">%.&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -655,11 +671,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb12-2" data-line-number="2"><span class="co"># using dot-pipe's bquote style .() execute immediate notation</span></a>
-<a class="sourceLine" id="cb12-3" data-line-number="3">d <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb12-4" data-line-number="4"><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb12-5" data-line-number="5"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="co"># using dot-pipe&#39;s bquote style .() execute immediate notation</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>d <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -681,12 +697,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="co"># identity</span></a>
-<a class="sourceLine" id="cb13-3" data-line-number="3">d <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="st">  </span>transform <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb13-6" data-line-number="6"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="co"># identity</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>d <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb13-5"><a href="#cb13-5"></a><span class="st">  </span>transform <span class="op">%.&gt;%</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -719,27 +735,27 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tbody>
 </table>
 <p>And, of course, the exact same functionality for database tables.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">have_db &lt;-<span class="st"> </span><span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></a>
-<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </a>
-<a class="sourceLine" id="cb15-2" data-line-number="2">                                 <span class="st">&quot;:memory:&quot;</span>)</a>
-<a class="sourceLine" id="cb15-3" data-line-number="3">RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</a>
-<a class="sourceLine" id="cb15-4" data-line-number="4">db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</a>
-<a class="sourceLine" id="cb15-5" data-line-number="5">  <span class="dt">connection =</span> raw_connection,</a>
-<a class="sourceLine" id="cb15-6" data-line-number="6">  <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</a>
-<a class="sourceLine" id="cb15-7" data-line-number="7">  <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</a>
-<a class="sourceLine" id="cb15-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb15-9" data-line-number="9">d_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;d&quot;</span>, d)</a></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">ops &lt;-<span class="st"> </span>d_td <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform)</a>
-<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="kw">cat</span>(<span class="kw">format</span>(ops))</a>
-<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="co">#&gt; mk_td(&quot;d&quot;, c(</span></a>
-<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="co">#&gt;   &quot;model_id&quot;,</span></a>
-<a class="sourceLine" id="cb16-5" data-line-number="5"><span class="co">#&gt;   &quot;measure&quot;,</span></a>
-<a class="sourceLine" id="cb16-6" data-line-number="6"><span class="co">#&gt;   &quot;value&quot;)) %.&gt;%</span></a>
-<a class="sourceLine" id="cb16-7" data-line-number="7"><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;model_id&quot; &quot;model_id&quot;, MAX( CASE WHEN CAST(a.&quot;measure&quot; AS VARCHAR) = 'AUC' THEN a.&quot;value&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;AUC&quot;, MAX( CASE WHEN CAST(a.&quot;measure&quot; AS VARCHAR) = 'R2' THEN a.&quot;value&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;R2&quot; FROM &quot;IN&quot; a GROUP BY a.&quot;model_id&quot;)</span></a>
-<a class="sourceLine" id="cb16-8" data-line-number="8"></a>
-<a class="sourceLine" id="cb16-9" data-line-number="9">rquery<span class="op">::</span><span class="kw">execute</span>(db, ops) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb16-10" data-line-number="10"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>have_db &lt;-<span class="st"> </span><span class="kw">requireNamespace</span>(<span class="st">&quot;DBI&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>) <span class="op">&amp;&amp;</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="st">   </span><span class="kw">requireNamespace</span>(<span class="st">&quot;RSQLite&quot;</span>, <span class="dt">quietly =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>raw_connection &lt;-<span class="st"> </span>DBI<span class="op">::</span><span class="kw">dbConnect</span>(RSQLite<span class="op">::</span><span class="kw">SQLite</span>(), </span>
+<span id="cb15-2"><a href="#cb15-2"></a>                                 <span class="st">&quot;:memory:&quot;</span>)</span>
+<span id="cb15-3"><a href="#cb15-3"></a>RSQLite<span class="op">::</span><span class="kw">initExtension</span>(raw_connection)</span>
+<span id="cb15-4"><a href="#cb15-4"></a>db &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rquery_db_info</span>(</span>
+<span id="cb15-5"><a href="#cb15-5"></a>  <span class="dt">connection =</span> raw_connection,</span>
+<span id="cb15-6"><a href="#cb15-6"></a>  <span class="dt">is_dbi =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb15-7"><a href="#cb15-7"></a>  <span class="dt">connection_options =</span> rquery<span class="op">::</span><span class="kw">rq_connection_tests</span>(raw_connection))</span>
+<span id="cb15-8"><a href="#cb15-8"></a></span>
+<span id="cb15-9"><a href="#cb15-9"></a>d_td &lt;-<span class="st"> </span>rquery<span class="op">::</span><span class="kw">rq_copy_to</span>(db, <span class="st">&quot;d&quot;</span>, d)</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>ops &lt;-<span class="st"> </span>d_td <span class="op">%//%</span><span class="st"> </span><span class="kw">t</span>(transform)</span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="kw">cat</span>(<span class="kw">format</span>(ops))</span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="co">#&gt; mk_td(&quot;d&quot;, c(</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="co">#&gt;   &quot;model_id&quot;,</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="co">#&gt;   &quot;measure&quot;,</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="co">#&gt;   &quot;value&quot;)) %.&gt;%</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="co">#&gt;  non_sql_node(., CREATE TEMPORARY TABLE &quot;OUT&quot; AS  SELECT a.&quot;model_id&quot; &quot;model_id&quot;, MAX( CASE WHEN CAST(a.&quot;measure&quot; AS VARCHAR) = &#39;AUC&#39; THEN a.&quot;value&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;AUC&quot;, MAX( CASE WHEN CAST(a.&quot;measure&quot; AS VARCHAR) = &#39;R2&#39; THEN a.&quot;value&quot; ELSE NULL </span><span class="re">END</span><span class="co"> ) &quot;R2&quot; FROM &quot;IN&quot; a GROUP BY a.&quot;model_id&quot;)</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a></span>
+<span id="cb16-9"><a href="#cb16-9"></a>rquery<span class="op">::</span><span class="kw">execute</span>(db, ops) <span class="op">%.&gt;%</span></span>
+<span id="cb16-10"><a href="#cb16-10"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -761,11 +777,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1"></a>
-<a class="sourceLine" id="cb17-2" data-line-number="2">d_td <span class="op">%.&gt;%</span><span class="st"> </span></a>
-<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="st">  </span>rquery<span class="op">::</span><span class="kw">execute</span>(db, .) <span class="op">%.&gt;%</span></a>
-<a class="sourceLine" id="cb17-5" data-line-number="5"><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</a></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a></span>
+<span id="cb17-2"><a href="#cb17-2"></a>d_td <span class="op">%.&gt;%</span><span class="st"> </span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="st">  </span>.(<span class="kw">t</span>(transform)) <span class="op">%.&gt;%</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="st">  </span>rquery<span class="op">::</span><span class="kw">execute</span>(db, .) <span class="op">%.&gt;%</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="st">  </span>knitr<span class="op">::</span><span class="kw">kable</span>(.)</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -787,7 +803,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 </tr>
 </tbody>
 </table>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb18-1" data-line-number="1">DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</a></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>DBI<span class="op">::</span><span class="kw">dbDisconnect</span>(raw_connection)</span></code></pre></div>
 
 
 
