@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2020-08-12" />
+<meta name="date" content="2020-08-24" />
 
 <title>Designing Transforms for Data Reshaping with cdata</title>
 
@@ -319,7 +319,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Designing Transforms for Data Reshaping with cdata</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2020-08-12</h4>
+<h4 class="date">2020-08-24</h4>
 
 
 
@@ -433,7 +433,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb2-24"><a href="#cb2-24"></a><span class="co">#&gt;      .        , .        , &quot;Sepal&quot;      , Sepal.Length, Sepal.Width )</span></span>
 <span id="cb2-25"><a href="#cb2-25"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;, &#39;flower_part&#39;)</span></span>
 <span id="cb2-26"><a href="#cb2-26"></a><span class="co">#&gt; </span></span>
-<span id="cb2-27"><a href="#cb2-27"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb2-27"><a href="#cb2-27"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb2-28"><a href="#cb2-28"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>And we can now perform the transform.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>iris <span class="op">%.&gt;%</span></span>
@@ -557,7 +557,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb5-15"><a href="#cb5-15"></a><span class="co">#&gt;      .        , .        , Petal.Length  , Petal.Width  , Sepal.Length  , Sepal.Width   )</span></span>
 <span id="cb5-16"><a href="#cb5-16"></a><span class="co">#&gt;  row_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;)</span></span>
 <span id="cb5-17"><a href="#cb5-17"></a><span class="co">#&gt; </span></span>
-<span id="cb5-18"><a href="#cb5-18"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb5-18"><a href="#cb5-18"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb5-19"><a href="#cb5-19"></a><span class="co">#&gt; }</span></span>
 <span id="cb5-20"><a href="#cb5-20"></a></span>
 <span id="cb5-21"><a href="#cb5-21"></a>iris_aug <span class="op">%.&gt;%</span></span>

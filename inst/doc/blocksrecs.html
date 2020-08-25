@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Nina Zumel" />
 
-<meta name="date" content="2020-08-12" />
+<meta name="date" content="2020-08-24" />
 
 <title>Block Records and Row Records</title>
 
@@ -319,7 +319,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Block Records and Row Records</h1>
 <h4 class="author">John Mount, Nina Zumel</h4>
-<h4 class="date">2020-08-12</h4>
+<h4 class="date">2020-08-24</h4>
 
 
 
@@ -391,7 +391,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb2-22"><a href="#cb2-22"></a><span class="co">#&gt;      .        , .        , &quot;Sepal&quot;      , Sepal.Length, Sepal.Width )</span></span>
 <span id="cb2-23"><a href="#cb2-23"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;, &#39;flower_part&#39;)</span></span>
 <span id="cb2-24"><a href="#cb2-24"></a><span class="co">#&gt; </span></span>
-<span id="cb2-25"><a href="#cb2-25"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb2-25"><a href="#cb2-25"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb2-26"><a href="#cb2-26"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>And then applying it converts rows from our <code>iris</code> data into ready to plot 2-row blocks.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>iris <span class="op">%.&gt;%</span></span>
@@ -535,7 +535,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb6-16"><a href="#cb6-16"></a><span class="co">#&gt;      .        , .        , Petal.Length  , Petal.Width  , Sepal.Length  , Sepal.Width   )</span></span>
 <span id="cb6-17"><a href="#cb6-17"></a><span class="co">#&gt;  row_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;)</span></span>
 <span id="cb6-18"><a href="#cb6-18"></a><span class="co">#&gt; </span></span>
-<span id="cb6-19"><a href="#cb6-19"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb6-19"><a href="#cb6-19"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb6-20"><a href="#cb6-20"></a><span class="co">#&gt; }</span></span>
 <span id="cb6-21"><a href="#cb6-21"></a></span>
 <span id="cb6-22"><a href="#cb6-22"></a><span class="co"># demonstrate the reverse transform</span></span>

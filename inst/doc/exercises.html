@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Nina Zumel; Win-Vector LLC" />
 
-<meta name="date" content="2020-08-12" />
+<meta name="date" content="2020-08-24" />
 
 <title>cdata Exercises</title>
 
@@ -319,7 +319,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">cdata Exercises</h1>
 <h4 class="author">John Mount, Nina Zumel; Win-Vector LLC</h4>
-<h4 class="date">2020-08-12</h4>
+<h4 class="date">2020-08-24</h4>
 
 
 
@@ -423,7 +423,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <span id="cb3-19"><a href="#cb3-19"></a><span class="co">#&gt;      .      , &quot;m&quot;     , namem , incm  )</span></span>
 <span id="cb3-20"><a href="#cb3-20"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;famid&#39;, &#39;dadmom&#39;)</span></span>
 <span id="cb3-21"><a href="#cb3-21"></a><span class="co">#&gt; </span></span>
-<span id="cb3-22"><a href="#cb3-22"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb3-23"><a href="#cb3-23"></a><span class="co">#&gt; }</span></span></code></pre></div>
 <p>The <code>print()</code> method fully documents what columns are expected and the intent of the data layout transform. It uses the same quoted/unquoted convention that we used in specifying <code>outgoing_record</code> above.</p>
 <p>The <em>block_keys</em> of the outgoing record shape specify the unique identifier of each row of the transformed data: that is, each row of <code>dadmomt</code> will be uniquely identified by the values of the columns <code>famid</code> and <code>dadmom</code> (which family, which parent). One of the block keys is always the record key; by default, <code>rowrecs_to_blocks_spec()</code> takes the other one from the first column of the <code>outgoing_record</code> shape. You can specify the block key (or keys) explicitly with the <code>controlTableKeys</code> argument:</p>
@@ -921,7 +921,7 @@ I have unsuccessfully tried to use reshape and melt. Existing posts address tran
 <span id="cb12-44"><a href="#cb12-44"></a><span class="co">#&gt;      .     , &quot;350&quot; , 350     )</span></span>
 <span id="cb12-45"><a href="#cb12-45"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;Name&#39;, &#39;Time&#39;)</span></span>
 <span id="cb12-46"><a href="#cb12-46"></a><span class="co">#&gt; </span></span>
-<span id="cb12-47"><a href="#cb12-47"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb12-47"><a href="#cb12-47"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb12-48"><a href="#cb12-48"></a><span class="co">#&gt; }</span></span>
 <span id="cb12-49"><a href="#cb12-49"></a></span>
 <span id="cb12-50"><a href="#cb12-50"></a><span class="co"># apply the layout</span></span>
@@ -1092,7 +1092,7 @@ I have unsuccessfully tried to use reshape and melt. Existing posts address tran
 <span id="cb14-30"><a href="#cb14-30"></a><span class="co">#&gt;      .   , .    , &quot;T2&quot;  , work.T2, play.T2, talk.T2, total.T2 )</span></span>
 <span id="cb14-31"><a href="#cb14-31"></a><span class="co">#&gt;  block_keys &lt;- c(&#39;id&#39;, &#39;trt&#39;, &#39;time&#39;)</span></span>
 <span id="cb14-32"><a href="#cb14-32"></a><span class="co">#&gt; </span></span>
-<span id="cb14-33"><a href="#cb14-33"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb14-33"><a href="#cb14-33"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb14-34"><a href="#cb14-34"></a><span class="co">#&gt; }</span></span>
 <span id="cb14-35"><a href="#cb14-35"></a></span>
 <span id="cb14-36"><a href="#cb14-36"></a><span class="co"># apply the layout</span></span>
@@ -1173,7 +1173,7 @@ I have unsuccessfully tried to use reshape and melt. Existing posts address tran
 <span id="cb15-15"><a href="#cb15-15"></a><span class="co">#&gt;      .   , .    , work.T1  , play.T1  , talk.T1  , total.T1  , work.T2  , play.T2  , talk.T2  , total.T2   )</span></span>
 <span id="cb15-16"><a href="#cb15-16"></a><span class="co">#&gt;  row_keys &lt;- c(&#39;id&#39;, &#39;trt&#39;)</span></span>
 <span id="cb15-17"><a href="#cb15-17"></a><span class="co">#&gt; </span></span>
-<span id="cb15-18"><a href="#cb15-18"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)</span></span>
+<span id="cb15-18"><a href="#cb15-18"></a><span class="co">#&gt;  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)</span></span>
 <span id="cb15-19"><a href="#cb15-19"></a><span class="co">#&gt; }</span></span>
 <span id="cb15-20"><a href="#cb15-20"></a></span>
 <span id="cb15-21"><a href="#cb15-21"></a><span class="co"># apply the inverse layout</span></span>

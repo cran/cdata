@@ -12,7 +12,7 @@
 
 <meta name="author" content="John Mount, Win-Vector LLC" />
 
-<meta name="date" content="2020-08-12" />
+<meta name="date" content="2020-08-24" />
 
 <title>cdata</title>
 
@@ -319,7 +319,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">cdata</h1>
 <h4 class="author">John Mount, Win-Vector LLC</h4>
-<h4 class="date">2020-08-12</h4>
+<h4 class="date">2020-08-24</h4>
 
 
 
@@ -471,7 +471,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##      .        , .        , &quot;petal&quot;     , &quot;length&quot;     , Petal.Length )
 ##  block_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;, &#39;plant_part&#39;, &#39;measurement&#39;)
 ## 
-##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)
+##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)
 ## }</code></pre>
 <p>In the above we have used the common useful data organizing trick of specifying a dependent column (Species being a function of iris_id) as an additional key.</p>
 <p>This layout then specifies and implements the data transform. We can transform the data by sending it to the layout.</p>
@@ -680,7 +680,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ##      .        , .        , Sepal.Width  , Sepal.Length  , Petal.Width  , Petal.Length   )
 ##  row_keys &lt;- c(&#39;iris_id&#39;, &#39;Species&#39;)
 ## 
-##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = TRUE)
+##  # args: c(checkNames = TRUE, checkKeys = FALSE, strict = FALSE, allow_rqdatatable = FALSE)
 ## }</code></pre>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>d_transformed <span class="op">%.&gt;%</span></span>
 <span id="cb8-2"><a href="#cb8-2"></a><span class="st">  </span>inv_layout <span class="op">%.&gt;%</span></span>
@@ -772,7 +772,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 ## [1] FALSE
 ## 
 ## $allow_rqdatatable
-## [1] TRUE</code></pre>
+## [1] FALSE</code></pre>
 <p>Notice that almost all of the time and space in using cdata is spent in specifying how your data is structured and is to be structured.</p>
 <p>The main <code>cdata</code> interfaces are given by the following set of methods:</p>
 <ul>
